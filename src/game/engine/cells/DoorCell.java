@@ -30,3 +30,4 @@ public class DoorCell extends Cell{
 	}
 	  
 }
+ 

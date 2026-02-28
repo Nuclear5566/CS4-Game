@@ -8,3 +8,4 @@ public class Schemer extends Monster {
 	}
 	  
 }
+ 

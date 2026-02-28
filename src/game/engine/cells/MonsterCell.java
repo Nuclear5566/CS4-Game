@@ -18,3 +18,4 @@ public class MonsterCell extends Cell {
 	}
 	  
 }
+ 

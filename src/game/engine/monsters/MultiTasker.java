@@ -17,3 +17,4 @@ private int normalSpeedTurns;
 		this.normalSpeedTurns = speedturn;
 	}  
 }
+ 
