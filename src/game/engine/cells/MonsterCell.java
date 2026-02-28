@@ -16,5 +16,5 @@ public class MonsterCell extends Cell {
 	{
 		this.cellMonster = object;
 	}
-	
+	 
 }

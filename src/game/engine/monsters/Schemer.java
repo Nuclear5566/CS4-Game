@@ -6,5 +6,5 @@ public class Schemer extends Monster {
 	{
 		super(name,description,role,energy);
 	}
-	
+	 
 }
