@@ -11,7 +11,7 @@ public abstract class Monster implements Comparable<Monster> {
  	private boolean shielded; // Read and Write
  	private int confusionTurns; // Read and Write
  	
- 	Monster(String name, String description, Role originalRole, int energy)
+ 	public Monster(String name, String description, Role originalRole, int energy)
  	{
  		this.name = name;
  		this.description = description;
