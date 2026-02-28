@@ -15,5 +15,5 @@ private int normalSpeedTurns;
 	public void setNormalSpeedTurns(int speedturn)
 	{
 		this.normalSpeedTurns = speedturn;
-	} 
+	}  
 }

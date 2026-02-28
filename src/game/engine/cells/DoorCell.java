@@ -28,5 +28,5 @@ public class DoorCell extends Cell{
 	{
 		this.activated = flag;
 	}
-	 
+	  
 }

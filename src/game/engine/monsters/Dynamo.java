@@ -6,5 +6,5 @@ public class Dynamo extends Monster {
 	{
 		super(name,description,role,energy);
 		
-	} 
+	}  
 }

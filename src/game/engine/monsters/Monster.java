@@ -85,5 +85,5 @@ public abstract class Monster implements Comparable<Monster> {
  		this.shielded = flag;
  	}
  	// getter and setter for confusionTurns not made, due to not having enough
- 	// info about subclasses 
+ 	// info about subclasses  
 }
