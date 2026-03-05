@@ -6,15 +6,10 @@ import game.engine.cells.*;
 import game.engine.monsters.*;
 import game.engine.*;
 public class DataLoader {
-	 static String CARDS_FILE_NAME; //A String containing the name of the card’s CSV file.
-	 static String CELLS_FILE_NAME; //A String containing the name of the cell’s CSV file.
-	 static String MONSTERS_FILE_NAME; //A String containing the name of the monster’s CSV file.
+	 static String CARDS_FILE_NAME = "cards.csv"; //A String containing the name of the card’s CSV file.
+	 static String CELLS_FILE_NAME = "cells.csv"; //A String containing the name of the cell’s CSV file.
+	 static String MONSTERS_FILE_NAME = "monsters.csv"; //A String containing the name of the monster’s CSV file.
 	 
-	 public DataLoader() {
-		 CARDS_FILE_NAME = "cards.csv";
-		 CELLS_FILE_NAME = "cells.csv";
-		 MONSTERS_FILE_NAME = "monsters.csv";
-	 }
 	 public static ArrayList<Card> readCards() throws IOException{
 		 ArrayList<Card> cards = new ArrayList<Card>();
 		 try(BufferedReader reader = new BufferedReader(new FileReader(CARDS_FILE_NAME))){
@@ -45,13 +40,15 @@ public class DataLoader {
 				 	case "SHIELD":
 				 		Card c4 = new ShieldCard(name, description, rarity);
 				 		cards.add(c4);
+				 		break;
 				 	case "SWAPPER":
 				 		Card c5 = new SwapperCard(name, description, rarity);
 				 		cards.add(c5);
+				 		break;
 				 }						 
 			 }
-			 return cards;
 		 }
+		 return cards;
 	 }
 	 public static ArrayList<Cell> readCells() throws IOException{
 		 ArrayList<Cell> cells = new ArrayList<Cell>();
@@ -84,9 +81,8 @@ public class DataLoader {
 				 }
 				 
 			 }
-			 return cells;
 		 }
-
+		 return cells;
 	 }
 	 public static ArrayList<Monster> readMonsters() throws IOException{
 		 ArrayList<Monster> monster = new ArrayList<Monster>();
