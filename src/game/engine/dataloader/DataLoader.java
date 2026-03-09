@@ -6,9 +6,9 @@ import game.engine.cells.*;
 import game.engine.monsters.*;
 import game.engine.*;
 public class DataLoader {
-	 static final String CARDS_FILE_NAME = "cards.csv"; //A String containing the name of the card’s CSV file.
-	 static final String CELLS_FILE_NAME = "cells.csv"; //A String containing the name of the cell’s CSV file.
-	 static final String MONSTERS_FILE_NAME = "monsters.csv"; //A String containing the name of the monster’s CSV file.
+	 private static final String CARDS_FILE_NAME = "cards.csv"; //A String containing the name of the card’s CSV file.
+	 private static final String CELLS_FILE_NAME = "cells.csv"; //A String containing the name of the cell’s CSV file.
+	 private static final String MONSTERS_FILE_NAME = "monsters.csv"; //A String containing the name of the monster’s CSV file.
 	 
 	 public static ArrayList<Card> readCards() throws IOException{
 		 ArrayList<Card> cards = new ArrayList<Card>();
