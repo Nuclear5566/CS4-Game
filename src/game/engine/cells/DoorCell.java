@@ -31,8 +31,9 @@ public class DoorCell extends Cell implements CanisterModifier{
 		this.activated = flag;
 	}
 	@Override
-	public void Change_Energy(Monster shrek, int newEnergy) {
-		// TODO Auto-generated method stub
+	public void Change_Energy(Monster shrek) {
+		// how would we implement the method on team wide roles	
+		return;
 		
 	}
 	  

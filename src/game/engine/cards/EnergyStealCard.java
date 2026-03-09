@@ -12,8 +12,9 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 	{
 		return this.energy;
 	}
-	public void Change_Energy(Monster shrek,int energy) {  
+	public void Change_Energy(Monster shrek) {  
 		/*it should take the energy of the card but idk why its private
 		 so i'll leave it for now*/
+		shrek.setEnergy(shrek.getEnergy() - this.getEnergy());
 	}
 }
