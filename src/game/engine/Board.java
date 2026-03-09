@@ -17,7 +17,7 @@ public class Board{
 		stationedMonsters = new ArrayList<>();
 		cards = new ArrayList<>();
 		//originalCards should read CSV, does nothing right now
-		originalCards = DataLoader.readCards();
+		originalCards = readCards;
 	}
 	 
 	public Cell[][] getBoardCells(){ //gets boardCells
