@@ -29,7 +29,7 @@ public class Board{
 	public void setStationedMonsters(Monster newStationedMonsters){ //sets new stationedMonsters
 		stationedMonsters.add(newStationedMonsters);
 	}
-	public ArrayList<Card> getOriginalCards(){
+	public static ArrayList<Card> getOriginalCards(){
 		return originalCards;
 	}
 	public ArrayList<Card> getCards(){
