@@ -19,7 +19,7 @@ public class Board{
 		//originalCards should read CSV, does nothing right now
 		originalCards = DataLoader.readCards();
 	}
-	
+	 
 	public Cell[][] getBoardCells(){ //gets boardCells
 		return boardCells;
 	}

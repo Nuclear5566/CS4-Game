@@ -11,4 +11,4 @@ public class Dynamo extends Monster {
 		return super.getConfusionTurns();
 	}
 }
- 
+  
