@@ -1,38 +1,42 @@
 package game.engine;
+import java.io.IOException;
 import java.util.ArrayList;
 import game.engine.monsters.*;
 import game.engine.cells.*;
+import game.engine.dataloader.DataLoader;
 import game.engine.cards.*;
 
 public class Board{
-	Cell[][] boardCells;
-	static ArrayList <Monster> stationedMonsters;
-	static ArrayList<Card> originalCards; 
-	static ArrayList<Card> cards;
+	private Cell[][] boardCells;
+	private static ArrayList <Monster> stationedMonsters;
+	private static ArrayList<Card> originalCards; 
+	private static ArrayList<Card> cards;
 	
-	public Board(ArrayList<Card> readCards){
+	public Board(ArrayList<Card> readCards) throws IOException{
 		this.boardCells = new Cell[Constants.BOARD_ROWS][Constants.BOARD_COLS]; //unsure how to initialize this
 		stationedMonsters = new ArrayList<>();
 		cards = new ArrayList<>();
 		//originalCards should read CSV, does nothing right now
+		originalCards = DataLoader.readCards();
 	}
 	
-	public Cell[][] getboardCells(){ //gets boardCells
+	public Cell[][] getBoardCells(){ //gets boardCells
 		return boardCells;
 	}
-	public ArrayList<Monster> getstationedMonsters(){ //gets stationedMonsters
+	public ArrayList<Monster> getStationedMonsters(){ //gets stationedMonsters
 		return stationedMonsters;
 	}
-	public void setStationedMonsters(ArrayList<Monster> newStationedMonsters){ //sets new stationedMonsters
-		stationedMonsters = newStationedMonsters;
+	public void setStationedMonsters(Monster newStationedMonsters){ //sets new stationedMonsters
+		stationedMonsters.add(newStationedMonsters);
 	}
-	public ArrayList<Card> getoriginalCards(){
+	public ArrayList<Card> getOriginalCards(){
 		return originalCards;
 	}
-	public ArrayList<Card> getcards(){
+	public ArrayList<Card> getCards(){
 		return cards;
 	}
-	public void setcards(ArrayList<Card> newcards){
-		cards = newcards;
+	public void setCards(ArrayList<Card> newcards){
+	    Board.cards = newcards;
+
 	}
 }

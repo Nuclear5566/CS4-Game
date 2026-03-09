@@ -84,6 +84,14 @@ public abstract class Monster implements Comparable<Monster> {
  	{
  		this.shielded = flag;
  	}
+ 	public int getConfusionTurns()
+ 	{
+ 		return this.confusionTurns;
+ 	}
+ 	public void setConfusionTurns(int turn)
+ 	{
+ 		this.confusionTurns = turn;
+ 	}
  	// getter and setter for confusionTurns not made, due to not having enough
  	// info about subclasses  
 }
