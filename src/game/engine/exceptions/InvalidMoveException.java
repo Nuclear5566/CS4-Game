@@ -2,7 +2,7 @@ package game.engine.exceptions;
 
 public class InvalidMoveException extends GameActionException {
 	private static final long serialVersionUID = 1L;
-	static final String MSG = "Invalid move attempted";
+	private static final String MSG = "Invalid move attempted";
 	//Uses the default exception from MSG
 	public InvalidMoveException() {
         super(MSG);

@@ -2,7 +2,7 @@ package game.engine.exceptions;
 
 public class OutOfEnergyException extends GameActionException {
 	private static final long serialVersionUID = 1L;
-	static final String MSG="Not Enough Energy for Power Up";
+	private static final String MSG="Not Enough Energy for Power Up";
 	public OutOfEnergyException() {
 		super(MSG);
 	}
