@@ -2789,7 +2789,7 @@ public class Milestone1PublicTests {
 	@Test(timeout = 1000)
 	public void testGameConstructorInitializationUsingReadCSV() throws IOException {
 		savingCardsCSV();
-		savingMonstersCSV();
+		savingMonstersCSV(); 
 		try {
 			ArrayList<String> cardsList = writeCardsCSVForDataLoader();
 			ArrayList<String> monstersList = writeMonstersCSVForDataLoader();
