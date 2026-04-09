@@ -1,42 +1,45 @@
 package game.engine;
-import java.io.IOException;
-import java.util.ArrayList;
-import game.engine.monsters.*;
-import game.engine.cells.*;
-import game.engine.dataloader.DataLoader;
-import game.engine.cards.*;
 
-public class Board{
+import java.util.ArrayList;
+
+import game.engine.cards.Card;
+import game.engine.cells.*;
+import game.engine.monsters.Monster;
+
+public class Board {
 	private Cell[][] boardCells;
-	private static ArrayList <Monster> stationedMonsters;
-	private static ArrayList<Card> originalCards; 
+	private static ArrayList<Monster> stationedMonsters; 
+	private static ArrayList<Card> originalCards;
 	public static ArrayList<Card> cards;
 	
-	public Board(ArrayList<Card> readCards) throws IOException{
-		this.boardCells = new Cell[Constants.BOARD_ROWS][Constants.BOARD_COLS]; //unsure how to initialize this
-		stationedMonsters = new ArrayList<>();
-		cards = new ArrayList<>();
-		//originalCards should read CSV, does nothing right now
+	public Board(ArrayList<Card> readCards) {
+		this.boardCells = new Cell[Constants.BOARD_ROWS][Constants.BOARD_COLS];
+		stationedMonsters = new ArrayList<Monster>();
 		originalCards = readCards;
+		cards = new ArrayList<Card>();
 	}
-	 
-	public Cell[][] getBoardCells(){ //gets boardCells
+	
+	public Cell[][] getBoardCells() {
 		return boardCells;
 	}
-	public ArrayList<Monster> getStationedMonsters(){ //gets stationedMonsters
+	
+	public static ArrayList<Monster> getStationedMonsters() {
 		return stationedMonsters;
 	}
-	public void setStationedMonsters(Monster newStationedMonsters){ //sets new stationedMonsters
-		stationedMonsters.add(newStationedMonsters);
+	
+	public static void setStationedMonsters(ArrayList<Monster> stationedMonsters) {
+		Board.stationedMonsters = stationedMonsters;
 	}
-	public static ArrayList<Card> getOriginalCards(){
+
+	public static ArrayList<Card> getOriginalCards() {
 		return originalCards;
 	}
-	public ArrayList<Card> getCards(){
+	
+	public static ArrayList<Card> getCards() {
 		return cards;
 	}
-	public void setCards(ArrayList<Card> newcards){
-	    Board.cards = newcards;
-
+	
+	public static void setCards(ArrayList<Card> cards) {
+		Board.cards = cards;
 	}
 }

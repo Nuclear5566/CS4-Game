@@ -1,20 +1,17 @@
 package game.engine.cards;
-import game.engine.interfaces.*;
-import game.engine.monsters.*;
+
+import game.engine.interfaces.CanisterModifier;
+
 public class EnergyStealCard extends Card implements CanisterModifier {
-	private int energy; // Read only
-	public EnergyStealCard(String name, String description, int rarity, int energy)
-	{
-		super(name,description,rarity);
+	private int energy;
+
+	public EnergyStealCard(String name, String description, int rarity, int energy) {
+		super(name, description, rarity, true);
 		this.energy = energy;
 	}
-	public int getEnergy()
-	{
-		return this.energy;
+	
+	public int getEnergy() {
+		return energy;
 	}
-	public void Change_Energy(Monster shrek) {  
-		/*it should take the energy of the card but idk why its private
-		 so i'll leave it for now*/
-		shrek.setEnergy(shrek.getEnergy() - this.getEnergy());
-	}
+	
 }
