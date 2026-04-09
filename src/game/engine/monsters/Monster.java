@@ -91,5 +91,38 @@ public abstract class Monster implements Comparable<Monster> {
 	public int compareTo(Monster other) {
 		return this.position - other.position;
 	}
+	
+	// 500 energy or free if cell monster role is the same as player
+	abstract void executePowerupEffect(Monster opponentMonster);
+	boolean isConfused() {
+		if(confusionTurns == 0) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	void move(int distance) {
+		this.position = this.position + distance;
+	}
+	void alterEnergy(int energy) {
+		if(shielded && energy < 0) {
+			this.shielded = false;
+		}
+		else {
+			this.energy  = this.energy + energy;
+		}
+	}
+	void decrementConfusion() {
+		if(this.confusionTurns == 0) {
+			return;
+		}
+		else {
+			if(this.confusionTurns - 1 == 0) {
+				this.role = this.originalRole;
+			}
+			this.confusionTurns--;
+		}
+	}
 
 }

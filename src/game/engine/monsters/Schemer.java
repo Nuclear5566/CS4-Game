@@ -1,11 +1,65 @@
 package game.engine.monsters;
 
+import java.util.ArrayList;
+
+import game.engine.*;
 import game.engine.Role;
 
 public class Schemer extends Monster {
 	
 	public Schemer(String name, String description, Role role, int energy) {
 		super(name, description, role, energy);
+	}
+	private int stealEnergyFrom(Monster target) {
+		int temp = Constants.SCHEMER_STEAL;
+		if(temp > target.getEnergy()) {
+			return target.getEnergy();
+		}
+		else {
+			return temp;
+		}
+	}
+	void executePowerupEffect(Monster opponentMonster) {
+		//schemer steals energy from the opponent and all stationed monsters, gaining a single total steal bonus at the end
+		//gains +10 energy on every incoming energy changes, whether positive or negative
+		
+		boolean deductEnergy = true;
+		int totalEnergy = 0; //total combined energy of all stationedMonsters
+		
+		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
+			if(this.getPosition() == i) {
+				deductEnergy = false;
+			}
+		}
+			
+		ArrayList<Monster> stationedMonsters = Board.getStationedMonsters();
+		
+		
+		for(Monster cellMonster : stationedMonsters) {
+			totalEnergy = totalEnergy + cellMonster.getEnergy();
+		}
+		
+		boolean canWork = (this.getEnergy() - 500) > 0;
+		
+		if(canWork) {
+			for(Monster cellMonster : stationedMonsters) {
+				cellMonster.setEnergy(cellMonster.getEnergy() - 10);
+			}
+		}
+		
+		if(deductEnergy) {
+			int newEnergy = this.getEnergy() - 500;
+			if(canWork) {
+				this.setEnergy(newEnergy);
+			}
+		}
+		else {
+			this.alterEnergy(totalEnergy);
+		}
+	}
+	
+	void alterEnergy(int energy) {
+		super.alterEnergy(energy + 10);
 	}
 	
 }
