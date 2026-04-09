@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import game.engine.cards.Card;
 import game.engine.cells.*;
 import game.engine.monsters.Monster;
+import game.engine.exceptions.*;
 
 public class Board {
 	private Cell[][] boardCells;
@@ -41,5 +42,33 @@ public class Board {
 	
 	public static void setCards(ArrayList<Card> cards) {
 		Board.cards = cards;
+	}
+	
+	private int[] indexToRowCol(int index) {
+		
+	}
+	private Cell getCell(int index) {
+		
+	}
+	private void setCell(int index, Cell cell) {
+		
+	}
+	void initializeBoard(ArrayList<Cell> specialCells) {
+		
+	}
+	private void setCardsByRarity() {
+		
+	}
+	static void reloadCards() {
+		
+	}
+	static Card drawCard() {
+		
+	}
+	void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException {
+		
+	}
+	private void updateMonsterPositions(Monster player, Monster opponent) {
+		
 	}
 }

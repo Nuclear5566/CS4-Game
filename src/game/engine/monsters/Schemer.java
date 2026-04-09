@@ -3,7 +3,7 @@ package game.engine.monsters;
 import java.util.ArrayList;
 
 import game.engine.*;
-import game.engine.Role;
+import game.engine.exceptions.*;
 
 public class Schemer extends Monster {
 	
@@ -19,7 +19,7 @@ public class Schemer extends Monster {
 			return temp;
 		}
 	}
-	void executePowerupEffect(Monster opponentMonster) {
+	void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
 		//schemer steals energy from the opponent and all stationed monsters, gaining a single total steal bonus at the end
 		//gains +10 energy on every incoming energy changes, whether positive or negative
 		
@@ -51,11 +51,16 @@ public class Schemer extends Monster {
 			int newEnergy = this.getEnergy() - 500;
 			if(canWork) {
 				this.setEnergy(newEnergy);
+				this.alterEnergy(totalEnergy);
+			}
+			else {
+				//OutOfEnergyException;
 			}
 		}
 		else {
 			this.alterEnergy(totalEnergy);
 		}
+		
 	}
 	
 	void alterEnergy(int energy) {

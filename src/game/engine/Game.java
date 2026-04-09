@@ -6,6 +6,7 @@ import java.util.Collections;
 
 import game.engine.dataloader.DataLoader;
 import game.engine.monsters.*;
+import game.engine.exceptions.*;
 
 public class Game {
 	private Board board;
@@ -54,6 +55,29 @@ public class Game {
 	    		.filter(m -> m.getRole() == role)
 	    		.findFirst()
 	    		.orElse(null);
+	}
+	
+	
+	private Monster getCurrentOpponent() {
+		
+	}
+	private int rollDice() {
+		return (int) (Math.random() * 6 + 1);
+	}
+	void usePowerup() throws OutOfEnergyException {
+		
+	}
+	void playTurn() throws InvalidMoveException {
+		
+	}
+	private void switchTurn() {
+		
+	}
+	private boolean checkWinCondition(Monster monster) {
+		
+	}
+	Monster getWinner() {
+		
 	}
 	
 }

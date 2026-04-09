@@ -2,6 +2,7 @@ package game.engine.monsters;
 
 import game.engine.Constants;
 import game.engine.Role;
+import game.engine.exceptions.OutOfEnergyException;
 
 public abstract class Monster implements Comparable<Monster> {
 	private String name;
@@ -93,7 +94,7 @@ public abstract class Monster implements Comparable<Monster> {
 	}
 	
 	// 500 energy or free if cell monster role is the same as player
-	abstract void executePowerupEffect(Monster opponentMonster);
+	abstract void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException;
 	boolean isConfused() {
 		if(confusionTurns == 0) {
 			return false;
