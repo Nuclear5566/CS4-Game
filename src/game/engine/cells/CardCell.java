@@ -37,7 +37,7 @@ public class CardCell extends Cell {
 		{
 			((ConfusionCard) randomCard).performAction(landingMonster, opponenMonster);
 		}
-		 
+		 // idk
 	}
 	
    
