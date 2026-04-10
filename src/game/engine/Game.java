@@ -70,15 +70,15 @@ public class Game {
 		return (int) (Math.random() * 6 + 1);
 	}
 	void usePowerup() throws OutOfEnergyException {
-		boolean deductEnergy = true;
+		/*boolean deductEnergy = true;
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
 			if(this.current.getPosition() == i && this.current.getRole() == i.getRole()) {
 				deductEnergy = false;
 			}
 		}
 		if(!deductEnergy && this.current.getEnergy() > 500) {
-			this.current.
-		}
+			//this.current.
+		}*/
 	}
 	void playTurn() throws InvalidMoveException {
 		
