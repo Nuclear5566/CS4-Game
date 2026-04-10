@@ -23,12 +23,15 @@ public class Schemer extends Monster {
 		//schemer steals energy from the opponent and all stationed monsters, gaining a single total steal bonus at the end
 		//gains +10 energy on every incoming energy changes, whether positive or negative
 		
+		boolean monsterAtSameCell = false;
 		boolean deductEnergy = true;
 		int totalEnergy = 0; //total combined energy of all stationedMonsters
 		
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
 			if(this.getPosition() == i) {
-				deductEnergy = false;
+				//if(Board.getBoardCells()[i%10][i/10].getMonster().getRole() == this.getRole()) {
+					
+				//}
 			}
 		}
 			
