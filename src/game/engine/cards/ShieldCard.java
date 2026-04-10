@@ -8,7 +8,7 @@ public class ShieldCard extends Card {
 		super(name, description, rarity, true); 
 	}
 	
-
+ 
 
 	
 	public void performAction(Monster Player, Monster opponent) {

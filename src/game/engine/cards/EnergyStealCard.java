@@ -46,7 +46,7 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 				modifyCanisterEnergy(opponent,lossEnergy);
 			}
 			else // it will steal energy according to the type of the card
-			{
+			{ 
 				String cardName = this.getName();
 				switch(cardName)
 				{
@@ -63,6 +63,7 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 					modifyCanisterEnergy(opponent,-150);
 					break;
 				}
+				// note: if this doesn't work use rarity as the switch case
 			}
 		}
 		// if shielded the effect would not be applied in the first place

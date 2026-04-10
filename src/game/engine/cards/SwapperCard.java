@@ -14,5 +14,5 @@ public class SwapperCard extends Card {
 			opponent.setPosition(temp);
 		}
 	}
-	
+	 
 }
