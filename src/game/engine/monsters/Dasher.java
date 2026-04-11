@@ -24,7 +24,7 @@ public class Dasher extends Monster {
 		//move 3x instead of 2x for 3 turns (needs game class)
 		boolean deductEnergy = true;
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
-			if(this.getPosition() == i) {
+			if(this.getPosition() == Constants.MONSTER_CELL_INDICES[i]) {
 				deductEnergy = false;
 			}
 		}

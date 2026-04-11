@@ -23,7 +23,7 @@ public class MultiTasker extends Monster {
 	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
 		boolean deductEnergy = true;
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
-			if(this.getPosition() == i) {
+			if(this.getPosition() == Constants.MONSTER_CELL_INDICES[i]) {
 				deductEnergy = false;
 			}
 		}
