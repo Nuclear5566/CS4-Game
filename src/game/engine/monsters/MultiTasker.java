@@ -20,7 +20,7 @@ public class MultiTasker extends Monster {
 		this.normalSpeedTurns = normalSpeedTurns;
 	}
 	
-	void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
+	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
 		boolean deductEnergy = true;
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
 			if(this.getPosition() == i) {
@@ -42,11 +42,11 @@ public class MultiTasker extends Monster {
 		}
 	}
 	
-	void move(int distance) {
+	public void move(int distance) {
 		super.move(distance / 2);
 	}
 	
-	void alterEnergy(int energy) {
+	public void alterEnergy(int energy) {
 		super.alterEnergy(energy + 200);
 	}
 

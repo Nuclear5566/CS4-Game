@@ -20,7 +20,7 @@ public class Dasher extends Monster {
 		this.momentumTurns = momentumTurns;
 	}
 	
-	void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
+	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
 		//move 3x instead of 2x for 3 turns (needs game class)
 		boolean deductEnergy = true;
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
@@ -43,7 +43,7 @@ public class Dasher extends Monster {
 		}
 	}
 	
-	void move(int distance) {
+	public void move(int distance) {
 		super.move(distance * 2);
 	}
 

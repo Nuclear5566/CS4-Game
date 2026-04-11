@@ -19,7 +19,7 @@ public class Schemer extends Monster {
 			return temp;
 		}
 	}
-	void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
+	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
 		//schemer steals energy from the opponent and all stationed monsters, gaining a single total steal bonus at the end
 		//gains +10 energy on every incoming energy changes, whether positive or negative
 		
@@ -66,7 +66,7 @@ public class Schemer extends Monster {
 		
 	}
 	
-	void alterEnergy(int energy) {
+	public void alterEnergy(int energy) {
 		super.alterEnergy(energy + 10);
 	}
 	

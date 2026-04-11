@@ -10,7 +10,7 @@ public class Dynamo extends Monster {
 		super(name, description, role, energy);
 	}
 	
-	void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException{
+	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException{
 		boolean deductEnergy = true;
 		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
 			if(this.getPosition() == i) {
@@ -31,7 +31,7 @@ public class Dynamo extends Monster {
 			opponentMonster.setFrozen(true); //will change for one turn, come back after game class is done
 		}
 	}
-	void alterEnergy(int energy) {
+	public void alterEnergy(int energy) {
 		super.alterEnergy(energy * 2);
 	}
 }

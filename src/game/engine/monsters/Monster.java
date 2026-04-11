@@ -94,7 +94,7 @@ public abstract class Monster implements Comparable<Monster> {
 	}
 	
 	// 500 energy or free if cell monster role is the same as player
-	abstract void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException;
+	public abstract void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException;
 	boolean isConfused() {
 		if(confusionTurns == 0) {
 			return false;
@@ -103,10 +103,10 @@ public abstract class Monster implements Comparable<Monster> {
 			return true;
 		}
 	}
-	void move(int distance) {
+	public void move(int distance) {
 		this.position = this.position + distance;
 	}
-	void alterEnergy(int energy) {
+	public void alterEnergy(int energy) {
 		if(shielded && energy < 0) {
 			this.shielded = false;
 		}
@@ -114,7 +114,7 @@ public abstract class Monster implements Comparable<Monster> {
 			this.energy  = this.energy + energy;
 		}
 	}
-	void decrementConfusion() {
+	public void decrementConfusion() {
 		if(this.confusionTurns == 0) {
 			return;
 		}

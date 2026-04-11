@@ -29,7 +29,7 @@ public abstract class Card {
 	public boolean isLucky() {
 		return lucky;
 	}
-	abstract void performAction(Monster Player, Monster opponent);
+	public abstract void performAction(Monster Player, Monster opponent);
 	 
 	
 }

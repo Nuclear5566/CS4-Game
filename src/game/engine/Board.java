@@ -123,7 +123,7 @@ public class Board {
 		cards = originalCards;
 		Collections.shuffle(cards); //Collections.shuffle() randomly shuffles an ArrayList
 	}
-	static Card drawCard() {
+	public static Card drawCard() {
 		if(cards.isEmpty()) {
 			reloadCards();
 		}
