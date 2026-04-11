@@ -1,9 +1,9 @@
 package game.engine;
 
 import java.util.*;
-
 import game.engine.cards.Card;
 import game.engine.cells.*;
+import game.engine.dataloader.DataLoader;
 import game.engine.monsters.Monster;
 import game.engine.exceptions.*;
 import game.engine.*;
@@ -129,10 +129,29 @@ public class Board {
 		}
 		return cards.remove(0);
 	}
-	void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException {
-		
+	public void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException {
+		int newPosition = currentMonster.getPosition() + roll;
+		Cell newCell = getCell(newPosition); 
+		if(newPosition!=opponentMonster.getPosition()) {
+			if(newCell instanceof MonsterCell) {
+				newCell.onLand(currentMonster, newCell.getMonster());				
+			}
+			else {
+				newCell.onLand(currentMonster,null);
+		   }
+			currentMonster.setPosition(newPosition);
+			
+			if(currentMonster.getConfusionTurns()>0) 
+				currentMonster.decrementConfusion();
+			if(opponentMonster.getConfusionTurns()>0)
+				opponentMonster.decrementConfusion();	
+		}
+		else {
+			throw new InvalidMoveException("Cannot land on the opponent's cell");
+		}
 	}
 	private void updateMonsterPositions(Monster player, Monster opponent) {
 		
+			
 	}
 }
