@@ -27,11 +27,17 @@ public class Schemer extends Monster {
 		boolean deductEnergy = true;
 		int totalEnergy = 0; //total combined energy of all stationedMonsters
 		
-		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
+		/*for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
 			if(this.getPosition() == i) {
 				//if(Board.getBoardCells()[i%10][i/10].getMonster().getRole() == this.getRole()) {
 					
 				//}
+			}
+		}*/
+		ArrayList<Monster> monsters = Board.getStationedMonsters();
+		for(Monster monster : monsters) {
+			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
+				deductEnergy = false;
 			}
 		}
 			
@@ -39,12 +45,13 @@ public class Schemer extends Monster {
 		
 		
 		for(Monster cellMonster : stationedMonsters) {
-			totalEnergy = totalEnergy + cellMonster.getEnergy();
+			//totalEnergy = totalEnergy + cellMonster.getEnergy();
+			totalEnergy = totalEnergy + 10;
 		}
 		
 		boolean canWork = (this.getEnergy() - 500) > 0;
 		
-		if(canWork) {
+		if(canWork || !deductEnergy) {
 			for(Monster cellMonster : stationedMonsters) {
 				cellMonster.setEnergy(cellMonster.getEnergy() - 10);
 			}
@@ -57,7 +64,7 @@ public class Schemer extends Monster {
 				this.alterEnergy(totalEnergy);
 			}
 			else {
-				//OutOfEnergyException;
+				throw new OutOfEnergyException("Insufficient Energy");
 			}
 		}
 		else {
@@ -66,8 +73,9 @@ public class Schemer extends Monster {
 		
 	}
 	
-	public void alterEnergy(int energy) {
-		super.alterEnergy(energy + 10);
+	public void setEnergy(int energy) {
+		int change = energy - this.getEnergy();
+		super.setEnergy(this.getEnergy() + (change + 10));
 	}
 	
 }

@@ -1,6 +1,7 @@
 package game.engine.monsters;
 
-import game.engine.Role;
+import java.util.ArrayList;
+
 import game.engine.*;
 import game.engine.exceptions.*;
 
@@ -22,8 +23,16 @@ public class MultiTasker extends Monster {
 	
 	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
 		boolean deductEnergy = true;
-		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
+		/*for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
 			if(this.getPosition() == Constants.MONSTER_CELL_INDICES[i]) {
+				
+				//deductEnergy = false;
+			}
+		}*/
+		
+		ArrayList<Monster> monsters = Board.getStationedMonsters();
+		for(Monster monster : monsters) {
+			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
 				deductEnergy = false;
 			}
 		}
@@ -35,10 +44,14 @@ public class MultiTasker extends Monster {
 			if(canWork) {
 				this.setEnergy(newEnergy);
 				//add actual implementation
+				this.normalSpeedTurns = 2;
+			}
+			else {
+				throw new OutOfEnergyException("Insufficient Energy");
 			}
 		}
 		else {
-			//add actual implementation
+			this.normalSpeedTurns = 2;
 		}
 	}
 	
@@ -46,8 +59,9 @@ public class MultiTasker extends Monster {
 		super.move(distance / 2);
 	}
 	
-	public void alterEnergy(int energy) {
-		super.alterEnergy(energy + 200);
+	public void setEnergy(int energy) {
+		int change = energy - this.getEnergy();
+		super.setEnergy(this.getEnergy() + (change + 200));
 	}
 
 }

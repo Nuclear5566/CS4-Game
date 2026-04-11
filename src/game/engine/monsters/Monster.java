@@ -106,7 +106,7 @@ public abstract class Monster implements Comparable<Monster> {
 	public void move(int distance) {
 		this.position = this.position + distance;
 	}
-	public void alterEnergy(int energy) {
+	public final void alterEnergy(int energy) {
 		if(shielded && energy < 0) {
 			this.shielded = false;
 		}
