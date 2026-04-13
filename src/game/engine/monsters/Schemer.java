@@ -34,12 +34,12 @@ public class Schemer extends Monster {
 				//}
 			}
 		}*/
-		ArrayList<Monster> monsters = Board.getStationedMonsters();
+		/*ArrayList<Monster> monsters = Board.getStationedMonsters();
 		for(Monster monster : monsters) {
 			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
 				deductEnergy = false;
 			}
-		}
+		}*/
 			
 		ArrayList<Monster> stationedMonsters = Board.getStationedMonsters();
 		
@@ -49,7 +49,7 @@ public class Schemer extends Monster {
 			totalEnergy = totalEnergy + 10;
 		}
 		
-		boolean canWork = (this.getEnergy() - 500) > 0;
+		/*boolean canWork = (this.getEnergy() - Constants.POWERUP_COST) > 0;
 		
 		if(canWork || !deductEnergy) {
 			for(Monster cellMonster : stationedMonsters) {
@@ -58,7 +58,7 @@ public class Schemer extends Monster {
 		}
 		
 		if(deductEnergy) {
-			int newEnergy = this.getEnergy() - 500;
+			int newEnergy = this.getEnergy() - Constants.POWERUP_COST;
 			if(canWork) {
 				this.setEnergy(newEnergy);
 				this.alterEnergy(totalEnergy);
@@ -69,6 +69,10 @@ public class Schemer extends Monster {
 		}
 		else {
 			this.alterEnergy(totalEnergy);
+		}*/
+		this.setEnergy(totalEnergy + this.getEnergy());
+		for(Monster cellMonster : stationedMonsters) {
+			cellMonster.setEnergy(cellMonster.getEnergy() - 10);
 		}
 		
 	}

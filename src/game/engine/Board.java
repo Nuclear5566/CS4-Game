@@ -106,6 +106,10 @@ public class Board {
 				setCell(i, cell);
 				i++;
 			}
+			else {
+				setCell(i, new Cell("Rest Cell"));
+				i++;
+			}
 		}
 				
 	}

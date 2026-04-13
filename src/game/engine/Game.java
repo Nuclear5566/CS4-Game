@@ -8,6 +8,7 @@ import game.engine.dataloader.DataLoader;
 import game.engine.monsters.*;
 import game.engine.exceptions.*;
 
+
 public class Game {
 	private Board board;
 	private ArrayList<Monster> allMonsters; 
@@ -23,6 +24,15 @@ public class Game {
 		this.player = selectRandomMonsterByRole(playerRole);
 		this.opponent = selectRandomMonsterByRole(playerRole == Role.SCARER ? Role.LAUGHER : Role.SCARER);
 		this.current = player;
+		ArrayList<Monster> stationedMonsters = new ArrayList<Monster>();
+		for(Monster monster : allMonsters) {
+			if(monster.equals(player) || monster.equals(opponent)) {
+				continue;
+			}
+			stationedMonsters.add(monster);
+		}
+		Board.setStationedMonsters(stationedMonsters);
+		board.initializeBoard(DataLoader.readCells());
 	}
 	
 	public Board getBoard() {
@@ -79,18 +89,36 @@ public class Game {
 		if(!deductEnergy && this.current.getEnergy() > 500) {
 			//this.current.
 		}*/
+		//this should implement energy logic regarding energy deduction and checking the current cell for a free powerup usage
+		
+		
+		
 	}
 	void playTurn() throws InvalidMoveException {
 		
 	}
 	private void switchTurn() {
-		
+		if(current.equals(player)) {
+			this.current = this.opponent;
+		}
+		else if(current.equals(opponent)) {
+			this.current = this.player;
+		}
 	}
 	private boolean checkWinCondition(Monster monster) {
-		
+		if(monster.getEnergy() >= Constants.WINNING_ENERGY && monster.getPosition() == Constants.WINNING_POSITION) {
+			return true;
+		}
+		return false;
 	}
 	Monster getWinner() {
-		
+		if(checkWinCondition(player)) {
+			return player;
+		}
+		else if(checkWinCondition(opponent)) {
+			return opponent;
+		}
+		return null;
 	}
 	
 }

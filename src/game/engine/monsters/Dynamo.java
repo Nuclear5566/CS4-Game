@@ -19,17 +19,17 @@ public class Dynamo extends Monster {
 			}
 		}*/
 		
-		ArrayList<Monster> monsters = Board.getStationedMonsters();
+		/*ArrayList<Monster> monsters = Board.getStationedMonsters();
 		for(Monster monster : monsters) {
 			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
 				deductEnergy = false;
 			}
 		}
 		
-		boolean canWork = (this.getEnergy() - 500) > 0; // checks if the deduction works
+		boolean canWork = (this.getEnergy() - Constants.POWERUP_COST) > 0; // checks if the deduction works
 		
 		if(deductEnergy) {
-			int newEnergy = this.getEnergy() - 500;
+			int newEnergy = this.getEnergy() - Constants.POWERUP_COST;
 			if(canWork) {
 				this.setEnergy(newEnergy);
 				opponentMonster.setFrozen(true); //will change for one turn, come back after game class is done
@@ -40,7 +40,9 @@ public class Dynamo extends Monster {
 		}
 		else {
 			opponentMonster.setFrozen(true); //will change for one turn, come back after game class is done
-		}
+		}*/
+		
+		opponentMonster.setFrozen(true);
 	}
 	public void setEnergy(int energy) {
 		int change = energy - this.getEnergy();

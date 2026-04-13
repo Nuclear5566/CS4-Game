@@ -30,17 +30,17 @@ public class MultiTasker extends Monster {
 			}
 		}*/
 		
-		ArrayList<Monster> monsters = Board.getStationedMonsters();
+		/*ArrayList<Monster> monsters = Board.getStationedMonsters();
 		for(Monster monster : monsters) {
 			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
 				deductEnergy = false;
 			}
 		}
 		
-		boolean canWork = (this.getEnergy() - 500) > 0;
+		boolean canWork = (this.getEnergy() - Constants.POWERUP_COST) > 0;
 		
 		if(deductEnergy) {
-			int newEnergy = this.getEnergy() - 500;
+			int newEnergy = this.getEnergy() - Constants.POWERUP_COST;
 			if(canWork) {
 				this.setEnergy(newEnergy);
 				//add actual implementation
@@ -52,7 +52,9 @@ public class MultiTasker extends Monster {
 		}
 		else {
 			this.normalSpeedTurns = 2;
-		}
+		}*/
+		
+		this.normalSpeedTurns = 2;
 	}
 	
 	public void move(int distance) {

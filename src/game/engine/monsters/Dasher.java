@@ -32,17 +32,17 @@ public class Dasher extends Monster {
 			}
 		}*/
 		
-		ArrayList<Monster> monsters = Board.getStationedMonsters();
+		/*ArrayList<Monster> monsters = Board.getStationedMonsters();
 		for(Monster monster : monsters) {
 			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
 				deductEnergy = false;
 			}
 		}
 		
-		boolean canWork = (this.getEnergy() - 500) > 0;
+		boolean canWork = (this.getEnergy() - Constants.POWERUP_COST) > 0;
 		
 		if(deductEnergy) {
-			int newEnergy = this.getEnergy() - 500;
+			int newEnergy = this.getEnergy() - Constants.POWERUP_COST;
 			if(canWork) {
 				this.setEnergy(newEnergy);
 				this.momentumTurns = 3;
@@ -54,7 +54,9 @@ public class Dasher extends Monster {
 		else {
 			//add actual implementation
 			this.momentumTurns = 3;
-		}
+		}*/
+		
+		this.momentumTurns = 3;
 	}
 	
 	public void move(int distance) {
