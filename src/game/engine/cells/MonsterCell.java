@@ -1,4 +1,4 @@
-package game.engine.cells;
+package game.engine.cells; 
 
 import game.engine.monsters.*;
 import game.engine.exceptions.*;
@@ -20,18 +20,20 @@ public class MonsterCell extends Cell {
 		//Role Match
 		if(landingMonster.getRole()==this.cellMonster.getRole()) {
 			try {
-				landingMonster.executePowerupEffect(opponentMonster);
-			} catch(OutOfEnergyException e) {
-				
-			}
-		}
+					landingMonster.executePowerupEffect(opponentMonster);
+				} 
+			catch (OutOfEnergyException e) {
+					e.printStackTrace();
+				}	
+			} 
 		//Role Mismatch
 		else {
+			
 			if(landingMonster.getEnergy()>this.cellMonster.getEnergy()) {
-				//I will use different Logic instead of temp because of shield hassle
-				int energyDifference=landingMonster.getEnergy() - this.cellMonster.getEnergy();
-				this.cellMonster.setEnergy(landingMonster.getEnergy());
-				landingMonster.alterEnergy(-energyDifference);
+				int landingEnergy = landingMonster.getEnergy();
+				int CellEnergy = this.cellMonster.getEnergy();
+				landingMonster.alterEnergy(CellEnergy - landingEnergy);
+				this.cellMonster.setEnergy(landingEnergy);
 			}
 		}
 		

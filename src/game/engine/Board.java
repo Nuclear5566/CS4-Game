@@ -70,7 +70,7 @@ public class Board {
 		int[] rowcol = indexToRowCol(index);
 		this.boardCells[rowcol[0]][rowcol[1]] = cell;
 	}
-	void initializeBoard(ArrayList<Cell> specialCells) {
+	public void initializeBoard(ArrayList<Cell> specialCells) {
 		int[] monsterIndices = Constants.MONSTER_CELL_INDICES; //{2, 18, 34, 54, 82, 88}
 		int monsterCounter = 0;
 		int[] conveyorIndices = Constants.CONVEYOR_CELL_INDICES; //{6, 22, 44, 52, 66}
@@ -79,40 +79,65 @@ public class Board {
 		int sockCounter = 0;
 		int[] cardIndices = Constants.CARD_CELL_INDICES; //{4, 12, 28, 36, 48, 56, 60, 76, 86, 90}
 		int cardCounter = 0;
+		int doorCellCounter = 0;
+		ArrayList<Cell> doorCells = new ArrayList<Cell>();
+		ArrayList<Cell> otherSpecialCells = new ArrayList<Cell>();
+		// differentiate which is a doorcell and which is not
+		for (Cell cell : specialCells)
+		{
+			if (cell instanceof DoorCell)
+			{
+				doorCells.add(cell);
+			}
+			else
+			{
+				otherSpecialCells.add(cell);
+			}
+		}
+		// fill the 100 spaces first with either Restcell or Odd as Doorcell
+		for (int i = 0 ; i < Constants.BOARD_SIZE ; i++)
+		{
+			if (i%2 == 0)
+			{
+				 setCell(i, new Cell("Rest Cell"));
+			}
+			else
+			{
+				setCell(i, doorCells.get(doorCellCounter));
+				doorCellCounter++;
+			}
+			
+		}
 		
-		int i = 0;
-		for(Cell cell : specialCells) {
+		//assign the other cells, conveyor, contamination,etc
+		
+		for(Cell cell : otherSpecialCells) {
 			if(cell instanceof MonsterCell) {
 				setCell(monsterIndices[monsterCounter], cell);
-				i++;
 				monsterCounter++;
 			}
 			else if(cell instanceof ConveyorBelt) {
 				setCell(conveyorIndices[conveyorCounter], cell);
-				i++;
 				conveyorCounter++;
 			}
 			else if(cell instanceof ContaminationSock){
 				setCell(sockIndices[sockCounter], cell);
-				i++;
 				sockCounter++;
 			}
 			else if(cell instanceof CardCell) {
 				setCell(cardIndices[cardCounter], cell);
-				i++;
 				cardCounter++;
 			}
-			else if(i % 2 != 0) {
-				setCell(i, cell);
-				i++;
-			}
-			else {
-				setCell(i, new Cell("Rest Cell"));
-				i++;
-			}
 		}
-				
+		// a the StationedMonsters
+		for (int i = 0 ; i < stationedMonsters.size(); i++) {
+	        Monster m = stationedMonsters.get(i);
+	        m.setPosition(monsterIndices[i]);
+	        getCell(monsterIndices[i]).setMonster(m);
+	    }
 	}
+				
+	 
 	private void setCardsByRarity() {
 		ArrayList<Card> newCards = new ArrayList<Card>();
 		for(Card card : this.originalCards) {
@@ -123,8 +148,8 @@ public class Board {
 		}
 		originalCards = newCards;
 	}
-	static void reloadCards() {
-		cards = originalCards;
+	public static void reloadCards() {
+		cards = new ArrayList<Card>(originalCards);
 		Collections.shuffle(cards); //Collections.shuffle() randomly shuffles an ArrayList
 	}
 	public static Card drawCard() {

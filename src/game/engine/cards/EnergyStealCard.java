@@ -33,7 +33,7 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 			}
 			
 		}
-	}
+	} 
 	public void performAction(Monster player, Monster opponent)
 	{
 		if (!opponent.isShielded()) // not shielded => the energy steal effect is applied
@@ -66,7 +66,11 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 				// note: if this doesn't work use rarity as the switch case
 			}
 		}
-		// if shielded the effect would not be applied in the first place
+		// if shielded the effect would not be applied in the first place, but remove the effect
+		else
+		{
+			opponent.setShielded(false);
+		}
 	}
 	
 }

@@ -58,7 +58,7 @@ public class Game {
 	public void setCurrent(Monster current) {
 		this.current = current;
 	}
-	
+	 
 	private Monster selectRandomMonsterByRole(Role role) {
 		Collections.shuffle(allMonsters);
 	    return allMonsters.stream()
@@ -79,7 +79,7 @@ public class Game {
 	private int rollDice() {
 		return (int) (Math.random() * 6 + 1);
 	}
-	void usePowerup() throws OutOfEnergyException {
+	public void usePowerup() throws OutOfEnergyException {
 		if (current.getEnergy() < Constants.POWERUP_COST) {
 	        throw new OutOfEnergyException();
 	    }
@@ -89,7 +89,7 @@ public class Game {
 			 current.executePowerupEffect(getCurrentOpponent());
 		}
 	}
-	void playTurn() throws InvalidMoveException {
+	public void playTurn() throws InvalidMoveException {
 		if (current.isFrozen())
 		{
 			// skip the turn
@@ -119,7 +119,7 @@ public class Game {
 		}
 		return false;
 	}
-	Monster getWinner() {
+	public Monster getWinner() {
 		if(checkWinCondition(player)) {
 			return player;
 		}

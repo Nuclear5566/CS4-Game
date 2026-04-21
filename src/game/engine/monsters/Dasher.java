@@ -60,7 +60,15 @@ public class Dasher extends Monster {
 	}
 	
 	public void move(int distance) {
-		super.move(distance * 2);
+		if (momentumTurns > 0) {
+	      super.move(distance * 3); // Momentum Rush: 3x speed
+	      momentumTurns--;
+	    } 
+		else
+		{
+		  super.move(distance * 2); // Passive: 2x speed
+		}
+		
 	}
-
+ 
 }

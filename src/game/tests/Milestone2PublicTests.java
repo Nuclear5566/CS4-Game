@@ -5520,7 +5520,7 @@ public class Milestone2PublicTests {
 			fail("Error while testing move in MultiTasker class: "
 					+ e.getMessage());
 		}
-	}
+	} 
 
 	@Test(timeout = 1000)
 	public void testPerformActionInClassSwapperCardCase1PlayerCheck() {
