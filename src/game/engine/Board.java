@@ -132,7 +132,7 @@ public class Board {
 			reloadCards();
 		}
 		return cards.remove(0);
-	}
+	} 
 	public void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException {
 		 int oldPosition = currentMonster.getPosition();
 		 currentMonster.move(roll); // move the monster first depending on the roll

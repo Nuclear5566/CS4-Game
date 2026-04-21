@@ -84,7 +84,7 @@ public class Game {
 	        throw new OutOfEnergyException();
 	    }
 		else
-		{
+		{ 
 			 current.setEnergy(current.getEnergy() - Constants.POWERUP_COST);
 			 current.executePowerupEffect(getCurrentOpponent());
 		}
