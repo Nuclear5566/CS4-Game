@@ -16,4 +16,4 @@ public class CardCell extends Cell {
 		drawnCard.performAction(landingMonster, opponentMonster);
 	}
 		 
-	} 
+	}  

@@ -58,7 +58,7 @@ public class Game {
 	public void setCurrent(Monster current) {
 		this.current = current;
 	}
-	 
+	  
 	private Monster selectRandomMonsterByRole(Role role) {
 		Collections.shuffle(allMonsters);
 	    return allMonsters.stream()

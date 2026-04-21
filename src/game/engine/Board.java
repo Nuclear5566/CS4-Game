@@ -137,7 +137,7 @@ public class Board {
 	    }
 	}
 				
-	 
+	  
 	private void setCardsByRarity() {
 		ArrayList<Card> newCards = new ArrayList<Card>();
 		for(Card card : this.originalCards) {

@@ -38,7 +38,7 @@ public class Dasher extends Monster {
 				deductEnergy = false;
 			}
 		}
-		
+		 
 		boolean canWork = (this.getEnergy() - Constants.POWERUP_COST) > 0;
 		
 		if(deductEnergy) {

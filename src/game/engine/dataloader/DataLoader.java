@@ -59,7 +59,7 @@ public class DataLoader {
 
 		return cards;
 	}
-	 
+	  
 	@SuppressWarnings("resource")
 	public static ArrayList<Cell> readCells() throws IOException {
 		ArrayList<Cell> cells = new ArrayList<Cell>();
