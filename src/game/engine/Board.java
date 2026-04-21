@@ -134,28 +134,34 @@ public class Board {
 		return cards.remove(0);
 	}
 	public void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException {
-		int newPosition = currentMonster.getPosition() + roll;
-		Cell newCell = getCell(newPosition); 
-		if(newPosition!=opponentMonster.getPosition()) {
-			if(newCell instanceof MonsterCell) {
-				newCell.onLand(currentMonster, newCell.getMonster());				
-			}
-			else {
-				newCell.onLand(currentMonster,null);
-		   }
-			currentMonster.setPosition(newPosition);
-			
-			if(currentMonster.getConfusionTurns()>0) 
-				currentMonster.decrementConfusion();
-			if(opponentMonster.getConfusionTurns()>0)
-				opponentMonster.decrementConfusion();	
-		}
-		else {
-			throw new InvalidMoveException("Cannot land on the opponent's cell");
-		}
+		 int oldPosition = currentMonster.getPosition();
+		 currentMonster.move(roll); // move the monster first depending on the roll
+         getCell(currentMonster.getPosition()).onLand(currentMonster, opponentMonster); // check collision (swaps/transports may change positions)
+		  
+         if (currentMonster.getPosition() == opponentMonster.getPosition()) {// Collision check after onLand
+
+		        currentMonster.setPosition(oldPosition);
+		        throw new InvalidMoveException("Cannot land on the opponent's cell");
+		    }
+
+		    // Decrement confusion after landing
+		    if (currentMonster.getConfusionTurns() > 0)
+		        currentMonster.decrementConfusion();
+		    if (opponentMonster.getConfusionTurns() > 0)
+		        opponentMonster.decrementConfusion();
+
+		    // Sync board cell references
+		    updateMonsterPositions(currentMonster, opponentMonster);
 	}
 	private void updateMonsterPositions(Monster player, Monster opponent) {
-		
+		for (int i = 0 ; i <  Constants.BOARD_ROWS; i++) { // removing all the cells inside the board
+	        for (int j = 0; j < Constants.BOARD_COLS; j ++) {
+	            boardCells[i][j].setMonster(null);
+	        }
+	    }
+	    getCell(player.getPosition()).setMonster(player);
+	    getCell(opponent.getPosition()).setMonster(opponent); // reassigning them
+	}
 			
 	}
-}
+

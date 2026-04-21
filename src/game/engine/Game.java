@@ -80,21 +80,29 @@ public class Game {
 		return (int) (Math.random() * 6 + 1);
 	}
 	void usePowerup() throws OutOfEnergyException {
-		/*boolean deductEnergy = true;
-		for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
-			if(this.current.getPosition() == i && this.current.getRole() == i.getRole()) {
-				deductEnergy = false;
-			}
+		if (current.getEnergy() < Constants.POWERUP_COST) {
+	        throw new OutOfEnergyException();
+	    }
+		else
+		{
+			 current.setEnergy(current.getEnergy() - Constants.POWERUP_COST);
+			 current.executePowerupEffect(getCurrentOpponent());
 		}
-		if(!deductEnergy && this.current.getEnergy() > 500) {
-			//this.current.
-		}*/
-		//this should implement energy logic regarding energy deduction and checking the current cell for a free powerup usage
-		
-		
-		
 	}
 	void playTurn() throws InvalidMoveException {
+		if (current.isFrozen())
+		{
+			// skip the turn
+			current.setFrozen(false);
+			this.switchTurn();
+			return;
+		}
+		else
+		{
+			int roll = rollDice();
+		    board.moveMonster(current, roll, getCurrentOpponent());
+		    this.switchTurn();
+		}
 		
 	}
 	private void switchTurn() {
