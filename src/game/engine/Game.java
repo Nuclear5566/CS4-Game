@@ -22,15 +22,11 @@ public class Game {
 		this.allMonsters = DataLoader.readMonsters();
 		
 		this.player = selectRandomMonsterByRole(playerRole);
+		this.allMonsters.remove(player);
 		this.opponent = selectRandomMonsterByRole(playerRole == Role.SCARER ? Role.LAUGHER : Role.SCARER);
+		this.allMonsters.remove(opponent);
 		this.current = player;
 		ArrayList<Monster> stationedMonsters = new ArrayList<Monster>();
-		for(Monster monster : allMonsters) {
-			if(monster.equals(player) || monster.equals(opponent)) {
-				continue;
-			}
-			stationedMonsters.add(monster);
-		}
 		Board.setStationedMonsters(stationedMonsters);
 		board.initializeBoard(DataLoader.readCells());
 	}

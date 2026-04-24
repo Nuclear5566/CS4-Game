@@ -20,61 +20,23 @@ public class Schemer extends Monster {
 		}
 	}
 	public void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException {
-		//schemer steals energy from the opponent and all stationed monsters, gaining a single total steal bonus at the end
-		//gains +10 energy on every incoming energy changes, whether positive or negative
-		
-		boolean monsterAtSameCell = false;
-		boolean deductEnergy = true;
-		int totalEnergy = 0; //total combined energy of all stationedMonsters
-		
-		/*for(int i = 0; i < Constants.MONSTER_CELL_INDICES.length; i++) {
-			if(this.getPosition() == i) {
-				//if(Board.getBoardCells()[i%10][i/10].getMonster().getRole() == this.getRole()) {
-					
-				//}
-			}
-		}*/
-		/*ArrayList<Monster> monsters = Board.getStationedMonsters();
-		for(Monster monster : monsters) {
-			if(this.getPosition() == monster.getPosition() && this.getRole() == monster.getRole()) {
-				deductEnergy = false;
-			}
-		}*/
-			
 		ArrayList<Monster> stationedMonsters = Board.getStationedMonsters();
-		
-		
-		for(Monster cellMonster : stationedMonsters) {
-			//totalEnergy = totalEnergy + cellMonster.getEnergy();
-			totalEnergy = totalEnergy + 10;
+		int totalStolen = 0;
+
+		// Steal from opponent
+		int stolenFromOpponent = stealEnergyFrom(opponentMonster);
+		opponentMonster.setEnergy(opponentMonster.getEnergy() - stolenFromOpponent);
+		totalStolen += stolenFromOpponent;
+
+		// Steal from all stationed monsters
+		for (Monster cellMonster : stationedMonsters) {
+			int stolen = stealEnergyFrom(cellMonster);
+			cellMonster.setEnergy(cellMonster.getEnergy() - stolen);
+			totalStolen += stolen;
 		}
-		
-		/*boolean canWork = (this.getEnergy() - Constants.POWERUP_COST) > 0;
-		
-		if(canWork || !deductEnergy) {
-			for(Monster cellMonster : stationedMonsters) {
-				cellMonster.setEnergy(cellMonster.getEnergy() - 10);
-			}
-		}
-		
-		if(deductEnergy) {
-			int newEnergy = this.getEnergy() - Constants.POWERUP_COST;
-			if(canWork) {
-				this.setEnergy(newEnergy);
-				this.alterEnergy(totalEnergy);
-			}
-			else {
-				throw new OutOfEnergyException("Insufficient Energy");
-			}
-		}
-		else {
-			this.alterEnergy(totalEnergy);
-		}*/
-		this.setEnergy(totalEnergy + this.getEnergy());
-		for(Monster cellMonster : stationedMonsters) {
-			cellMonster.setEnergy(cellMonster.getEnergy() - 10);
-		}
-		
+
+		// Give total to schemer at once (setEnergy applies +10 passive)
+		this.setEnergy(this.getEnergy() + totalStolen);
 	}
 	
 	public void setEnergy(int energy) {

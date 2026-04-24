@@ -36,7 +36,11 @@ public class DoorCell extends Cell implements CanisterModifier {
 	
 	@Override
 	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
-		monster.alterEnergy(canisterValue);
+		if (monster.getRole() == this.role) {
+			monster.alterEnergy(canisterValue);
+		} else {
+			monster.alterEnergy(-canisterValue);
+		}
 	}
 	
 	@Override
@@ -58,7 +62,7 @@ public class DoorCell extends Cell implements CanisterModifier {
 	}
 		//Not penalty (Add energy)
 		if(landingMonster.getRole()==this.role) {
-			this.modifyCanisterEnergy(landingMonster, energy);//Assuming the landingMonster not in teammates array
+			this.modifyCanisterEnergy(landingMonster, energy);
 			for(int i=0;i<teammates.size();i++) {
 				this.modifyCanisterEnergy(teammates.get(i), this.energy);
 			}
@@ -86,14 +90,12 @@ public class DoorCell extends Cell implements CanisterModifier {
 				return;
 			}
 			else {
-				int penalty=this.energy*-1;
-				this.modifyCanisterEnergy(landingMonster, penalty);
+				this.modifyCanisterEnergy(landingMonster, energy);
 				for(int i=0;i<teammates.size();i++) {
-					this.modifyCanisterEnergy(teammates.get(i), penalty);
+					this.modifyCanisterEnergy(teammates.get(i), energy);
 				}
 				this.setActivated(true);
 			}
 		}	
 	}
 }
-

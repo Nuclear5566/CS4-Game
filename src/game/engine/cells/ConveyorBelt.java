@@ -8,10 +8,9 @@ public class ConveyorBelt extends TransportCell {
 		super(name, effect);
 	}
 	
-	@Override
-	public void onLand(Monster landingMonster, Monster opponentMonster) {
-		super.onLand(landingMonster, opponentMonster);
-		transport(landingMonster);
-	}
+	/*
+	 * @Override public void onLand(Monster landingMonster, Monster opponentMonster)
+	 * { super.onLand(landingMonster, opponentMonster); transport(landingMonster); }
+	 */
 
 }

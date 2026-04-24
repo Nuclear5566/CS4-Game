@@ -81,59 +81,49 @@ public class Board {
 		int cardCounter = 0;
 		int doorCellCounter = 0;
 		ArrayList<Cell> doorCells = new ArrayList<Cell>();
-		ArrayList<Cell> otherSpecialCells = new ArrayList<Cell>();
-		// differentiate which is a doorcell and which is not
-		for (Cell cell : specialCells)
-		{
-			if (cell instanceof DoorCell)
-			{
-				doorCells.add(cell);
-			}
-			else
-			{
-				otherSpecialCells.add(cell);
-			}
-		}
-		// fill the 100 spaces first with either Restcell or Odd as Doorcell
-		for (int i = 0 ; i < Constants.BOARD_SIZE ; i++)
-		{
-			if (i%2 == 0)
-			{
-				 setCell(i, new Cell("Rest Cell"));
-			}
-			else
-			{
-				setCell(i, doorCells.get(doorCellCounter));
-				doorCellCounter++;
-			}
-			
-		}
-		
-		//assign the other cells, conveyor, contamination,etc
-		
-		for(Cell cell : otherSpecialCells) {
-			if(cell instanceof MonsterCell) {
-				setCell(monsterIndices[monsterCounter], cell);
-				monsterCounter++;
-			}
-			else if(cell instanceof ConveyorBelt) {
-				setCell(conveyorIndices[conveyorCounter], cell);
-				conveyorCounter++;
-			}
-			else if(cell instanceof ContaminationSock){
-				setCell(sockIndices[sockCounter], cell);
-				sockCounter++;
-			}
-			else if(cell instanceof CardCell) {
-				setCell(cardIndices[cardCounter], cell);
-				cardCounter++;
-			}
-		}
-		// a the StationedMonsters
-		for (int i = 0 ; i < stationedMonsters.size(); i++) {
+	    ArrayList<Cell> otherSpecialCells = new ArrayList<Cell>();
+
+	    for (Cell cell : specialCells) {
+	        if (cell instanceof DoorCell) {
+	            doorCells.add(cell);
+	        } else if (!(cell instanceof MonsterCell)) {
+	            // MonsterCells are handled separately via stationedMonsters
+	            otherSpecialCells.add(cell);
+	        }
+	    }
+
+	   // Fill all 100 cells — even -> Rest Cell, odd -> DoorCell
+	    for (int i = 0; i < Constants.BOARD_SIZE; i++) {
+	        if (i % 2 == 0) {
+	            setCell(i, new Cell("Rest Cell"));
+	        } else {
+	            setCell(i, doorCells.get(doorCellCounter));
+	            doorCellCounter++;
+	        }
+	    }
+
+	    // Overwrite with conveyor belts, contamination socks, card cells
+	    for (Cell cell : otherSpecialCells) {
+	        if (cell instanceof ConveyorBelt) {
+	            setCell(conveyorIndices[conveyorCounter], cell);
+	            conveyorCounter++;
+	        } else if (cell instanceof ContaminationSock) {
+	            setCell(sockIndices[sockCounter], cell);
+	            sockCounter++;
+	        }
+	    }
+
+	    // Place card cells at card indices
+	    for (int index : cardIndices) {
+	        setCell(index, new CardCell("Card Cell"));
+	    }
+
+	    // Place stationed monsters into MonsterCells at their specific indices
+	    for (int i = 0; i < stationedMonsters.size(); i++) {
 	        Monster m = stationedMonsters.get(i);
 	        m.setPosition(monsterIndices[i]);
-	        getCell(monsterIndices[i]).setMonster(m);
+	        MonsterCell mc = new MonsterCell(m.getName(), m);
+	        setCell(monsterIndices[i], mc);
 	    }
 	}
 				
@@ -161,19 +151,20 @@ public class Board {
 	public void moveMonster(Monster currentMonster, int roll, Monster opponentMonster) throws InvalidMoveException {
 		 int oldPosition = currentMonster.getPosition();
 		 currentMonster.move(roll); // move the monster first depending on the roll
-         getCell(currentMonster.getPosition()).onLand(currentMonster, opponentMonster); // check collision (swaps/transports may change positions)
+        getCell(currentMonster.getPosition()).onLand(currentMonster, opponentMonster); // check collision (swaps/transports may change positions)
 		  
-         if (currentMonster.getPosition() == opponentMonster.getPosition()) {// Collision check after onLand
+        if (currentMonster.getPosition() == opponentMonster.getPosition()) {// Collision check after onLand
 
 		        currentMonster.setPosition(oldPosition);
 		        throw new InvalidMoveException("Cannot land on the opponent's cell");
 		    }
 
-		    // Decrement confusion after landing
-		    if (currentMonster.getConfusionTurns() > 0)
+		    // Decrement confusion after landing — only if current monster is confused
+		    if (currentMonster.getConfusionTurns() > 0) {
 		        currentMonster.decrementConfusion();
-		    if (opponentMonster.getConfusionTurns() > 0)
-		        opponentMonster.decrementConfusion();
+		        if (opponentMonster.getConfusionTurns() > 0)
+		            opponentMonster.decrementConfusion();
+		    }
 
 		    // Sync board cell references
 		    updateMonsterPositions(currentMonster, opponentMonster);
