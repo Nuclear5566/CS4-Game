@@ -9,8 +9,6 @@ import game.engine.dataloader.DataLoader;
 import game.engine.exceptions.InvalidMoveException;
 import game.engine.exceptions.OutOfEnergyException;
 import game.engine.monsters.*;
-import javafx.*;
-
 
 public class Game {
 	private Board board;
@@ -116,9 +114,6 @@ public class Game {
 			return opponent;
 		
 		return null;
-	}
-	public static void main(String [] args) {
-		
 	}
 	
 }
