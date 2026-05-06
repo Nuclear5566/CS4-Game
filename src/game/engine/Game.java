@@ -4,19 +4,26 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-
+import javafx.*;
+import javafx.application.*;
+import javafx.scene.Scene;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import game.engine.dataloader.DataLoader;
 import game.engine.exceptions.InvalidMoveException;
 import game.engine.exceptions.OutOfEnergyException;
 import game.engine.monsters.*;
 
-public class Game {
+public class Game extends Application {
 	private Board board;
 	private ArrayList<Monster> allMonsters; 
 	private Monster player;
 	private Monster opponent;
-	private Monster current;
+	private Monster current; 
 	
+	public Game() {
+		
+	}
 	public Game(Role playerRole) throws IOException {
 		this.board = new Board(DataLoader.readCards());
 		
@@ -114,6 +121,17 @@ public class Game {
 			return opponent;
 		
 		return null;
+	}
+
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		// TODO Auto-generated method stub
+		primaryStage.show();
+		
+	}
+	
+	public static void main(String [] args) {
+		launch();
 	}
 	
 }
