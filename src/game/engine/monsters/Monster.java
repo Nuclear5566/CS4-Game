@@ -2,7 +2,6 @@ package game.engine.monsters;
 
 import game.engine.Constants;
 import game.engine.Role;
-import game.engine.exceptions.OutOfEnergyException;
 
 public abstract class Monster implements Comparable<Monster> {
 	private String name;
@@ -88,43 +87,38 @@ public abstract class Monster implements Comparable<Monster> {
 		this.confusionTurns = confusionTurns;
 	}
 
+	public abstract void executePowerupEffect(Monster opponentMonster);
+	
+	public boolean isConfused() {
+		return confusionTurns > 0;
+	}
+	
+	public void move(int distance) {
+		this.setPosition(this.getPosition() + distance);
+	}
+	
+	public final void alterEnergy(int energy) {
+		if (shielded && energy < 0) {
+			System.out.println(name + "'s shield blocked " + (-energy) + " damage!");
+			shielded = false; // Shield breaks after one use
+		}
+		
+		else 
+			this.setEnergy(this.getEnergy() + energy);	
+	}
+	
+	public void decrementConfusion() {
+		if (isConfused()) {
+			this.setConfusionTurns(this.getConfusionTurns() - 1);
+			
+			if(!isConfused())
+				this.setRole(originalRole);
+		}
+	}
+
 	@Override
 	public int compareTo(Monster other) {
 		return this.position - other.position;
-	}
-	
-	// 500 energy or free if cell monster role is the same as player
-	public abstract void executePowerupEffect(Monster opponentMonster) throws OutOfEnergyException;
-	
-	public boolean isConfused() {
-		if(confusionTurns == 0) {
-			return false;
-		}
-		else {
-			return true;
-		}
-	}  
-	public void move(int distance) {
-		this.position = (this.position + distance) % Constants.BOARD_SIZE;
-	}
-	public final void alterEnergy(int energy) {
-		if(shielded && energy < 0) {
-			this.shielded = false;
-		}
-		else {
-			setEnergy(this.energy + energy);
-		}
-	}
-	public void decrementConfusion() {
-		if(this.confusionTurns == 0) {
-			return;
-		}
-		else {
-			if(this.confusionTurns - 1 == 0) {
-				this.role = this.originalRole;
-			}
-			this.confusionTurns--;
-		}
 	}
 
 }

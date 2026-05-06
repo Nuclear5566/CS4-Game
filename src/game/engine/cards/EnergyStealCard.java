@@ -1,7 +1,7 @@
 package game.engine.cards;
 
 import game.engine.interfaces.CanisterModifier;
-import game.engine.monsters.*;
+import game.engine.monsters.Monster;
 
 public class EnergyStealCard extends Card implements CanisterModifier {
 	private int energy;
@@ -14,32 +14,27 @@ public class EnergyStealCard extends Card implements CanisterModifier {
 	public int getEnergy() {
 		return energy;
 	}
+
 	@Override
-	public void modifyCanisterEnergy(Monster monster, int canisterValue)
-	{
+	public void performAction(Monster player, Monster opponent) {
+		int opponentEnergyBefore = opponent.getEnergy();
+		
+	    int toSteal = Math.min(this.getEnergy(), opponentEnergyBefore);
+
+	    modifyCanisterEnergy(opponent, -toSteal);
+
+	    if (opponent.getEnergy() == opponentEnergyBefore) {
+	        System.out.println(opponent.getName() + "'s shield blocked the energy steal!");
+	        return;
+	    }
+
+	    modifyCanisterEnergy(player, toSteal);
+	    System.out.println(player.getName() + " stole " + toSteal + " energy from " + opponent.getName() + "!");
+	}
+	
+	@Override
+	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
 		monster.alterEnergy(canisterValue);
-	}  
-	public void performAction(Monster player, Monster opponent)
-	{
-		if (!opponent.isShielded()) // not shielded => the energy steal effect is applied
-		{
-			int energyStolen = 0;
-			if (this.energy > opponent.getEnergy())
-			{
-				energyStolen = opponent.getEnergy();
-			}
-			else
-			{
-				energyStolen = this.energy;
-			}
-			modifyCanisterEnergy(opponent, -1*energyStolen);
-	        modifyCanisterEnergy(player, energyStolen);
-		}
-		// if shielded the effect would not be applied in the first place, but remove the effect
-		else
-		{
-			opponent.setShielded(false);
-		}
 	}
 	
 }

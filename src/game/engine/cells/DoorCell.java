@@ -1,5 +1,4 @@
 package game.engine.cells;
-import java.util.*;
 
 import game.engine.Board;
 import game.engine.Role;
@@ -33,69 +32,39 @@ public class DoorCell extends Cell implements CanisterModifier {
 	public void setActivated(boolean isActivated) {
 		this.activated = isActivated;
 	}
-	
-	@Override
-	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
-		if (monster.getRole() == this.role) {
-			monster.alterEnergy(canisterValue);
-		} else {
-			monster.alterEnergy(-canisterValue);
-		}
-	}
-	
+
 	@Override
 	public void onLand(Monster landingMonster, Monster opponentMonster) {
 		super.onLand(landingMonster, opponentMonster);
-		if(this.activated) {
+		
+		if(isActivated())
+			return; 
+		
+		System.out.println(landingMonster.getName() + " landed on " + role + " door!");
+		
+		boolean wasShielded = landingMonster.isShielded();
+	     
+		modifyCanisterEnergy(landingMonster, this.energy);
+
+		// Only block if the monster took damage (opposing team) and was shielded
+		if (wasShielded && landingMonster.getRole() != this.role) 
 			return;
-		}
-		//Gather All teammates
-		ArrayList<Monster> teammates=new ArrayList<>();
-		ArrayList<Monster> stationed=Board.getStationedMonsters();
-		if(stationed!=null) {
-			for(int i=0;i<stationed.size();i++) {
-				Monster m=stationed.get(i);
-				if(m.getRole()==landingMonster.getRole()) {
-					teammates.add(m);
-				}
+
+	    
+		for (Monster monster : Board.getStationedMonsters()) {
+			//Only affect team members
+			if (monster.getRole() == landingMonster.getRole()) {
+				modifyCanisterEnergy(monster, this.energy);
+				System.out.println("  -> " + monster.getName() + " got " + this.energy + " energy!");
 			}
+		}
+		
+		setActivated(true);
 	}
-		//Not penalty (Add energy)
-		if(landingMonster.getRole()==this.role) {
-			this.modifyCanisterEnergy(landingMonster, energy);
-			for(int i=0;i<teammates.size();i++) {
-				this.modifyCanisterEnergy(teammates.get(i), this.energy);
-			}
-			this.setActivated(true);
-		}
-		//Penalty Lose energy
-		else {
-			//Check if anyone has a shield
-			boolean shieldFound=false;
-			if(landingMonster.isShielded()==true) {
-				shieldFound=true;
-				landingMonster.setShielded(false);//Consumes shield
-			}
-			else {
-				for(int i=0;i<teammates.size();i++) {
-					if(teammates.get(i).isShielded()==true) {
-						shieldFound=true;
-						teammates.get(i).setShielded(false);//Break its shield
-						break;//We need one shield only
-					}
-				}
-			}
-			//Shield Found?
-			if(shieldFound==true) {
-				return;
-			}
-			else {
-				this.modifyCanisterEnergy(landingMonster, energy);
-				for(int i=0;i<teammates.size();i++) {
-					this.modifyCanisterEnergy(teammates.get(i), energy);
-				}
-				this.setActivated(true);
-			}
-		}	
+
+	@Override
+	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
+		//Affect on team members vary according to role
+		monster.alterEnergy(this.role == monster.getRole() ? canisterValue : -canisterValue);
 	}
 }

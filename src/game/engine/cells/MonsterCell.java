@@ -1,7 +1,7 @@
-package game.engine.cells;  
+package game.engine.cells;
 
 import game.engine.monsters.*;
-import game.engine.exceptions.*;
+
 public class MonsterCell extends Cell {
 	private Monster cellMonster;
 
@@ -13,30 +13,28 @@ public class MonsterCell extends Cell {
 	public Monster getCellMonster() {
 		return cellMonster;
 	}
-	
-	@Override
-	public void onLand(Monster landingMonster, Monster opponentMonster) {
-		super.onLand(landingMonster, opponentMonster);
-		//Role Match
-		if(landingMonster.getRole()==this.cellMonster.getRole()) {
-			try {
-					landingMonster.executePowerupEffect(opponentMonster);
-				} 
-			catch (OutOfEnergyException e) {
-					e.printStackTrace();
-				}	
-			} 
-		//Role Mismatch
-		else {
-			
-			if(landingMonster.getEnergy()>this.cellMonster.getEnergy()) {
-				int landingEnergy = landingMonster.getEnergy();
-				int CellEnergy = this.cellMonster.getEnergy();
-				landingMonster.alterEnergy(CellEnergy - landingEnergy);
-				this.cellMonster.setEnergy(landingEnergy);
-			}
-		}
-		
-	}
 
+	@Override
+    public void onLand(Monster landingMonster, Monster opponentMonster) {
+		super.onLand(landingMonster, opponentMonster);
+		
+		// Same role: Use landing monster's powerup!
+        if (cellMonster.getRole() == landingMonster.getRole()) {
+        	System.out.println(landingMonster.getName() + " encountered ally " + cellMonster.getName() + "!");
+        	landingMonster.executePowerupEffect(opponentMonster);
+        }
+        
+        // Different role: Swap if landing monster has more energy
+        else {
+        	if (landingMonster.getEnergy() > cellMonster.getEnergy()) {
+        	    int landingEnergy = landingMonster.getEnergy();
+        	    int cellEnergy = cellMonster.getEnergy();
+        	    int diff = landingEnergy - cellEnergy;
+
+        	    landingMonster.alterEnergy(-diff); // shield will block this if active
+        	    cellMonster.alterEnergy(diff);     // cell monster always gets the gain
+        	    System.out.println("Energy swapped between " + landingMonster.getName() + " and " + cellMonster.getName());
+        	}
+        }
+    }
 }
