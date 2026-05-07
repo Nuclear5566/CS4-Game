@@ -252,7 +252,7 @@ public class Game extends Application {
 	    primaryStage.setFullScreenExitHint("");
 	    primaryStage.setFullScreen(true);
 	}
-	
+	 
 	public static void main(String [] args) {
 		launch();
 	}
