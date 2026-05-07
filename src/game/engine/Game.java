@@ -21,6 +21,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -164,13 +165,13 @@ public class Game extends Application {
 	    ImageView background = new ImageView(new Image("background(1st layer).png"));
 	    background.fitWidthProperty().bind(primaryStage.widthProperty());
 	    background.fitHeightProperty().bind(primaryStage.heightProperty());
-	    background.setPreserveRatio(true);
+	    background.setPreserveRatio(false);
 	    
 	    // Layer 2: black shady thing
 	    ImageView layer2 = new ImageView(new Image("titlegradientRectangle.png"));
 	    background.fitWidthProperty().bind(primaryStage.widthProperty());
 	    background.fitHeightProperty().bind(primaryStage.heightProperty());
-	    background.setPreserveRatio(true);
+	    background.setPreserveRatio(false);
 
 	    StackPane playBtn = createImageButton(
 	    	    "titlescreenbuttonbackground.png",   // convert your SVG to PNG and save here
@@ -241,8 +242,15 @@ public class Game extends Application {
 	    Scene scene = new Scene(root);
 	    primaryStage.setTitle("Door Dash");
 	    primaryStage.setScene(scene);
+	    primaryStage.setMaximized(true);
 	    primaryStage.show();
-		
+	    scene.setOnKeyPressed(e -> {
+	        if (e.getCode() == KeyCode.ESCAPE) {
+	            primaryStage.setFullScreen(!primaryStage.isFullScreen());
+	        }
+	    });
+	    primaryStage.setFullScreenExitHint("");
+	    primaryStage.setFullScreen(true);
 	}
 	
 	public static void main(String [] args) {
