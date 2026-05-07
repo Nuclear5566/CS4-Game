@@ -7,12 +7,25 @@ import java.util.Random;
 import javafx.*;
 import javafx.application.*;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import game.engine.dataloader.DataLoader;
 import game.engine.exceptions.InvalidMoveException;
 import game.engine.exceptions.OutOfEnergyException;
 import game.engine.monsters.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 
 public class Game extends Application {
 	private Board board;
@@ -122,11 +135,113 @@ public class Game extends Application {
 		
 		return null;
 	}
+	private StackPane createImageButton(String brushstrokePath, String labelImagePath, Stage stage, double widthRatio, double heightRatio, double width_enhancer) {
+	    
+	    // Brushstroke background
+	    ImageView brush = new ImageView(new Image("titlescreenbuttonbackground.png"));
+	    brush.setPreserveRatio(false);
+	    brush.fitWidthProperty().bind(stage.widthProperty().multiply(widthRatio));
+	    brush.fitHeightProperty().bind(stage.heightProperty().multiply(heightRatio));
 
+	    // Label image (PLAY or CREDITS)
+	    ImageView label = new ImageView(new Image(labelImagePath));
+	    label.setPreserveRatio(true);
+	    label.fitWidthProperty().bind(stage.widthProperty().multiply(widthRatio * width_enhancer));
+
+	    StackPane btn = new StackPane(brush, label);
+	    btn.setStyle("-fx-cursor: hand;");
+	    btn.setOnMouseEntered(e -> btn.setOpacity(0.8));
+	    btn.setOnMouseExited(e -> btn.setOpacity(1.0));
+
+	    return btn;
+	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		// TODO Auto-generated method stub
-		primaryStage.show();
+		// creating the head icon of the game
+		Image icon = new Image("gameNameTitle.png");
+		primaryStage.getIcons().add(icon);
+		// Layer 1: background image
+	    ImageView background = new ImageView(new Image("background(1st layer).png"));
+	    background.fitWidthProperty().bind(primaryStage.widthProperty());
+	    background.fitHeightProperty().bind(primaryStage.heightProperty());
+	    background.setPreserveRatio(true);
+	    
+	    // Layer 2: black shady thing
+	    ImageView layer2 = new ImageView(new Image("titlegradientRectangle.png"));
+	    background.fitWidthProperty().bind(primaryStage.widthProperty());
+	    background.fitHeightProperty().bind(primaryStage.heightProperty());
+	    background.setPreserveRatio(true);
+
+	    StackPane playBtn = createImageButton(
+	    	    "titlescreenbuttonbackground.png",   // convert your SVG to PNG and save here
+	    	    "PLAY.png",
+	    	    primaryStage, 0.22, 0.18,0.8
+	    	);
+
+	    	StackPane creditsBtn = createImageButton(
+	    	    "titlescreenbuttonbackground.png",
+	    	    "CREDITS.png",
+	    	    primaryStage, 0.22, 0.18,0.6
+	    	);
+
+	    // Click actions
+	    playBtn.setOnMouseClicked(e -> {
+	        System.out.println("Play clicked!");
+	        // TODO: switch to game scene
+	    });
+	    creditsBtn.setOnMouseClicked(e -> {
+	        System.out.println("Credits clicked!");
+	        // TODO: switch to credits scene
+	    });
+
+	    // Stack buttons vertically
+	    Pane buttonLayer = new Pane();
+	    playBtn.layoutXProperty().bind(
+	    	    primaryStage.widthProperty().multiply(0.75)
+	    	    .subtract(primaryStage.widthProperty().multiply(0.01).divide(2))
+	    	);
+	    	playBtn.layoutYProperty().bind(
+	    	    primaryStage.heightProperty().multiply(0.55)
+	    	    .subtract(primaryStage.heightProperty().multiply(0.18).divide(2))
+	    	);
+
+	    	// Bind Credits button position (X=0.95, Y=0.73)
+	    	creditsBtn.layoutXProperty().bind(
+	    	    primaryStage.widthProperty().multiply(0.95)
+	    	    .subtract(primaryStage.widthProperty().multiply(0.40).divide(2))
+	    	);
+	    	creditsBtn.layoutYProperty().bind(
+	    	    primaryStage.heightProperty().multiply(0.73)
+	    	    .subtract(primaryStage.heightProperty().multiply(0.18).divide(2))
+	    	);
+
+	    	buttonLayer.getChildren().addAll(playBtn, creditsBtn);
+	    
+	    	// Door Dash title logo
+	    	ImageView titleLogo = new ImageView(new Image("gameNameTitle.png"));
+	    	titleLogo.setPreserveRatio(true);
+	    	titleLogo.fitWidthProperty().bind(primaryStage.widthProperty().multiply(0.4));
+
+	    	Pane titleLayer = new Pane();
+
+	    	titleLogo.layoutXProperty().bind(
+	    	    primaryStage.widthProperty().multiply(0.25)
+	    	    .subtract(primaryStage.widthProperty().multiply(0.4).divide(2))
+	    	);
+	    	titleLogo.layoutYProperty().bind(
+	    	    primaryStage.heightProperty().multiply(0.5)
+	    	    .subtract(titleLogo.fitWidthProperty().divide(2))
+	    	);
+
+	    	titleLayer.getChildren().add(titleLogo);
+
+	    	// Add titleLayer to root between background/shade and buttons
+	    // Root
+	    StackPane root = new StackPane(background, layer2, buttonLayer,titleLayer);
+	    Scene scene = new Scene(root);
+	    primaryStage.setTitle("Door Dash");
+	    primaryStage.setScene(scene);
+	    primaryStage.show();
 		
 	}
 	
