@@ -178,12 +178,12 @@ public class Game extends Application {
 	    
 	    // Layer 2: black shady thing
 	    ImageView layer2 = new ImageView(new Image("titlegradientRectangle.png"));
-	    background.fitWidthProperty().bind(primaryStage.widthProperty());
-	    background.fitHeightProperty().bind(primaryStage.heightProperty());
-	    background.setPreserveRatio(false);
+	    layer2.fitWidthProperty().bind(primaryStage.widthProperty());
+	    layer2.fitHeightProperty().bind(primaryStage.heightProperty());
+	    layer2.setPreserveRatio(true);
 
 	    StackPane playBtn = createImageButton(
-	    	    "titlescreenbuttonbackground.png",   // convert your SVG to PNG and save here
+	    	    "titlescreenbuttonbackground.png",   
 	    	    "PLAY.png",
 	    	    primaryStage, 0.22, 0.18,0.8
 	    	);
