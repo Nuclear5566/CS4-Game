@@ -151,9 +151,18 @@ public class Game extends Application {
 
 	    StackPane btn = new StackPane(brush, label);
 	    btn.setStyle("-fx-cursor: hand;");
-	    btn.setOnMouseEntered(e -> btn.setOpacity(0.8));
-	    btn.setOnMouseExited(e -> btn.setOpacity(1.0));
-
+	    btn.setPickOnBounds(true);
+	    btn.setOnMouseEntered(e -> {
+	        btn.setOpacity(0.8);
+	        btn.setScaleX(1.05);
+	        btn.setScaleY(1.05);
+	    });
+	    btn.setOnMouseExited(e -> {
+	        btn.setOpacity(1.0);
+	        btn.setScaleX(1.0);
+	        btn.setScaleY(1.0);
+	    });
+	    btn.setOnMouseMoved(e -> System.out.println("Mouse over button!"));
 	    return btn;
 	}
 	@Override
@@ -215,9 +224,10 @@ public class Game extends Application {
 	    	    primaryStage.heightProperty().multiply(0.73)
 	    	    .subtract(primaryStage.heightProperty().multiply(0.18).divide(2))
 	    	);
-
+	    	playBtn.setPickOnBounds(true);
+	    	creditsBtn.setPickOnBounds(true);
 	    	buttonLayer.getChildren().addAll(playBtn, creditsBtn);
-	    
+	    	buttonLayer.setPickOnBounds(true);
 	    	// Door Dash title logo
 	    	ImageView titleLogo = new ImageView(new Image("gameNameTitle.png"));
 	    	titleLogo.setPreserveRatio(true);
@@ -235,8 +245,8 @@ public class Game extends Application {
 	    	);
 
 	    	titleLayer.getChildren().add(titleLogo);
+	    	titleLayer.setPickOnBounds(false);
 
-	    	// Add titleLayer to root between background/shade and buttons
 	    // Root
 	    StackPane root = new StackPane(background, layer2, buttonLayer,titleLayer);
 	    Scene scene = new Scene(root);
@@ -255,6 +265,6 @@ public class Game extends Application {
 	 
 	public static void main(String [] args) {
 		launch();
-	}
+	} 
 	
-}
+} 
