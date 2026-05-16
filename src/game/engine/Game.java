@@ -57,16 +57,12 @@ public class Game extends Application {
         
         // 1. Assign Player Role Randomly
         this.player = selectRandomMonsterByRole(playerRole, null);
-        
-        // Remove active player from the pool
         allMonsters.remove(this.player);
         
         // 2. Assign Opponent to the opposite team randomly, ensuring they are NOT the same monster type!
         Role oppRole = (playerRole == Role.SCARER) ? Role.LAUGHER : Role.SCARER;
         this.opponent = selectRandomMonsterByRole(oppRole, this.player.getClass());
         this.current = this.player;
-        
-        // Remove active opponent from the pool
         allMonsters.remove(this.opponent);
         
         // 3. Create a new list for the remaining monsters to act as stationed cells
@@ -104,8 +100,9 @@ public class Game extends Application {
     public void usePowerup() throws OutOfEnergyException {
         if (current.getEnergy() < Constants.POWERUP_COST)
             throw new OutOfEnergyException("Not enough energy to use powerup");
-        
         current.executePowerupEffect(getCurrentOpponent());
+        // Restored: Deducts the energy cost from the monster through the engine
+        current.setEnergy(current.getEnergy() - Constants.POWERUP_COST);
     }
 
     public void playTurn() throws InvalidMoveException {
@@ -527,24 +524,32 @@ public class Game extends Application {
             if (cellPanes[p2Pos] != null) cellPanes[p2Pos].getChildren().add(opponentToken);
         };
 
-        // Actions for PowerUp Buttons (Validated with feedback messages)
-        p1PowerupBtn.setOnMouseClicked(e -> {
+        // Actions for PowerUp Buttons (Validated directly via click handlers)
+        p1PowerupBtn.setOnAction(e -> {
             if (activeGame.getCurrent() != activeGame.getPlayer()) {
                 turnIndicator.setText("NOT YOUR TURN!");
             } else if (activeGame.getPlayer().getEnergy() < Constants.POWERUP_COST) {
                 turnIndicator.setText("NOT ENOUGH ENERGY (Need 500)");
             } else {
-                try { activeGame.usePowerup(); updateUI.run(); } catch (Exception ex) {}
+                try { 
+                    activeGame.usePowerup(); 
+                    updateUI.run(); 
+                    turnIndicator.setText("POWERUP ACTIVATED!");
+                } catch (Exception ex) {}
             }
         });
 
-        p2PowerupBtn.setOnMouseClicked(e -> {
+        p2PowerupBtn.setOnAction(e -> {
             if (activeGame.getCurrent() != activeGame.getOpponent()) {
                 turnIndicator.setText("NOT YOUR TURN!");
             } else if (activeGame.getOpponent().getEnergy() < Constants.POWERUP_COST) {
                 turnIndicator.setText("NOT ENOUGH ENERGY (Need 500)");
             } else {
-                try { activeGame.usePowerup(); updateUI.run(); } catch (Exception ex) {}
+                try { 
+                    activeGame.usePowerup(); 
+                    updateUI.run(); 
+                    turnIndicator.setText("POWERUP ACTIVATED!");
+                } catch (Exception ex) {}
             }
         });
 
@@ -591,7 +596,7 @@ public class Game extends Application {
             timeline.play();
         });
 
-        // ─── CARD DRAWING ─────────────────────────────────────────────────────
+        // ─── CARD DRAWING ───
         ImageView cardBack = new ImageView(new Image("Cards/cardstack.png"));
         cardBack.setPreserveRatio(false);
         cardBack.fitWidthProperty().bind(stage.widthProperty().multiply(0.11));
@@ -764,7 +769,7 @@ public class Game extends Application {
         // Type Label explicitly stated and placed nicely in the brush box
         ImageView brushBg = new ImageView(new Image("titlescreenbuttonbackground.png"));
         brushBg.setPreserveRatio(false);
-        brushBg.fitWidthProperty().bind(stage.widthProperty().multiply(0.15)); // Slightly wider to fit the text perfectly
+        brushBg.fitWidthProperty().bind(stage.widthProperty().multiply(0.15)); 
         brushBg.fitHeightProperty().bind(stage.heightProperty().multiply(0.04));
 
         Label typeLabel = new Label("Type: " + monster.getClass().getSimpleName());
@@ -794,7 +799,7 @@ public class Game extends Application {
         panelBg.fitHeightProperty().bind(stage.heightProperty().multiply(0.25)); 
         panelBg.setOpacity(0.4);
 
-        VBox content = new VBox(12, nameRow, typeContainer, blackArea);
+        VBox content = new VBox(8, nameRow, typeContainer, blackArea);
         content.setAlignment(Pos.TOP_LEFT);
         content.paddingProperty().bind(stage.widthProperty().asObject().map(w -> new Insets(10, 10, 10, 10)));
 
