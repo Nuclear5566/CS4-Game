@@ -1,6 +1,5 @@
 package game.engine.cells;
 
-import game.engine.Board;
 import game.engine.Role;
 import game.engine.interfaces.CanisterModifier;
 import game.engine.monsters.Monster;
@@ -34,37 +33,29 @@ public class DoorCell extends Cell implements CanisterModifier {
 	}
 
 	@Override
-	public void onLand(Monster landingMonster, Monster opponentMonster) {
-		super.onLand(landingMonster, opponentMonster);
-		
-		if(isActivated())
-			return; 
-		
-		System.out.println(landingMonster.getName() + " landed on " + role + " door!");
-		
-		boolean wasShielded = landingMonster.isShielded();
-	     
-		modifyCanisterEnergy(landingMonster, this.energy);
-
-		// Only block if the monster took damage (opposing team) and was shielded
-		if (wasShielded && landingMonster.getRole() != this.role) 
-			return;
-
-	    
-		for (Monster monster : Board.getStationedMonsters()) {
-			//Only affect team members
-			if (monster.getRole() == landingMonster.getRole()) {
-				modifyCanisterEnergy(monster, this.energy);
-				System.out.println("  -> " + monster.getName() + " got " + this.energy + " energy!");
-			}
+	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
+		if (canisterValue >=0) // just add the energy to the existing energy of the monster
+		{
+			monster.setEnergy(monster.getEnergy() + canisterValue);
 		}
-		
-		setActivated(true);
+		else // must first check if the total energy may be < 0, as the energy must be >=0
+		{
+			if( monster.getEnergy() - Math.abs(canisterValue) <= 0)
+			{
+				monster.setEnergy(0);
+			}
+			else
+			{
+				monster.setEnergy(monster.getEnergy() - Math.abs(canisterValue));
+			}
+			
+		}
 	}
 
 	@Override
-	public void modifyCanisterEnergy(Monster monster, int canisterValue) {
-		//Affect on team members vary according to role
-		monster.alterEnergy(this.role == monster.getRole() ? canisterValue : -canisterValue);
+	public void onLand(Monster landingMonster, Monster opponenMonster) {
+		
+		
 	}
+
 }

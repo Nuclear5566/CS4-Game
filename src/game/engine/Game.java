@@ -699,22 +699,103 @@ public class Game extends Application {
         for (int row = 0; row < 10; row++) {
             for (int col = 0; col < 10; col++) {
                 int cellNumber = getCellNumber(row, col);
-                int engineIndex = cellNumber - 1; 
+                int engineIndex = cellNumber - 1;
 
                 StackPane cell = new StackPane();
-                cell.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-border-color: #a0a0a0; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                 cell.prefWidthProperty().bind(stage.heightProperty().multiply(0.85).divide(10).subtract(4));
                 cell.prefHeightProperty().bind(stage.heightProperty().multiply(0.85).divide(10).subtract(4));
 
+                if (engineIndex == 99) {
+                    // Boo's Door
+                    cell.setStyle("-fx-background-color: #FFD700; -fx-border-color: #FFA500; -fx-border-width: 2px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    Label winLabel = new Label("BOO'S\nDOOR");
+                    winLabel.setStyle("-fx-font-size: 8px; -fx-text-fill: #8B0000; -fx-font-weight: bold;");
+                    winLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+                    cell.getChildren().add(winLabel);
+
+                } else if (engineIndex == 0) {
+                    // Start
+                    cell.setStyle("-fx-background-color: #c8f0c8; -fx-border-color: #4caf50; -fx-border-width: 2px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    Label startLabel = new Label("START");
+                    startLabel.setStyle("-fx-font-size: 8px; -fx-text-fill: #1a5c1a; -fx-font-weight: bold;");
+                    cell.getChildren().add(startLabel);
+
+                } else if (containsIndex(Constants.MONSTER_CELL_INDICES, engineIndex)) {
+                    // Monster Cell
+                    cell.setStyle("-fx-background-color: #4a90d9; -fx-border-color: #2c5f8a; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    String monsterImg = getMonsterImageForCell(engineIndex);
+                    if (monsterImg != null) {
+                        ImageView monsterView = new ImageView(new Image(monsterImg));
+                        monsterView.setPreserveRatio(true);
+                        monsterView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.80));
+                        monsterView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.80));
+                        cell.getChildren().add(monsterView);
+                    }
+
+                } else if (containsIndex(Constants.CONVEYOR_CELL_INDICES, engineIndex)) {
+                    // Conveyor Belt
+                    cell.setStyle("-fx-background-color: #5cb85c; -fx-border-color: #3d7a3d; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    ImageView conveyorView = new ImageView(new Image("conveyor_belt.png"));
+                    conveyorView.setPreserveRatio(true);
+                    conveyorView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.85));
+                    conveyorView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.85));
+                    cell.getChildren().add(conveyorView);
+
+                } else if (containsIndex(Constants.SOCK_CELL_INDICES, engineIndex)) {
+                    // Contamination Sock
+                    cell.setStyle("-fx-background-color: #e8a838; -fx-border-color: #b07820; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    ImageView sockView = new ImageView(new Image("socks.png"));
+                    sockView.setPreserveRatio(true);
+                    sockView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.75));
+                    sockView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.75));
+                    cell.getChildren().add(sockView);
+
+                } else if (containsIndex(Constants.CARD_CELL_INDICES, engineIndex)) {
+                    // Card Cell
+                    cell.setStyle("-fx-background-color: #d9534f; -fx-border-color: #8a2c2c; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    ImageView cardView = new ImageView(new Image("Cards/CardBack.png"));
+                    cardView.setPreserveRatio(true);
+                    cardView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.65));
+                    cardView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.85));
+                    cell.getChildren().add(cardView);
+
+                } else if (engineIndex % 2 != 0) {
+                    // Door Cell — odd indices alternate SCARER/LAUGHER
+                    boolean isScarerDoor = ((engineIndex - 1) / 2) % 2 == 0;
+                    if (isScarerDoor) {
+                        cell.setStyle("-fx-background-color: #ffb6c1; -fx-border-color: #cc4466; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                        ImageView doorView = new ImageView(new Image("PinkDoor.png"));
+                        doorView.setPreserveRatio(true);
+                        doorView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.60));
+                        doorView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.85));
+                        cell.getChildren().add(doorView);
+                    } else {
+                        cell.setStyle("-fx-background-color: #aec6f0; -fx-border-color: #4a7ac2; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                        ImageView doorView = new ImageView(new Image("BlueDoor.png"));
+                        doorView.setPreserveRatio(true);
+                        doorView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.60));
+                        doorView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.85));
+                        cell.getChildren().add(doorView);
+                    }
+
+                } else {
+                    // Normal Cell
+                    cell.setStyle("-fx-background-color: #f5f0d0; -fx-border-color: #c8b870; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                }
+
+                // Cell number always on top left
                 Label numberLabel = new Label(String.valueOf(cellNumber));
-                numberLabel.styleProperty().bind(stage.heightProperty().multiply(0.013).asString("-fx-font-size: %.0fpx; -fx-text-fill: #333333; -fx-font-weight: bold;"));
+                numberLabel.styleProperty().bind(
+                    stage.heightProperty().multiply(0.013)
+                    .asString("-fx-font-size: %.0fpx; -fx-text-fill: #333333; -fx-font-weight: bold;")
+                );
                 StackPane.setAlignment(numberLabel, Pos.TOP_LEFT);
                 numberLabel.translateXProperty().bind(stage.widthProperty().multiply(0.003));
                 numberLabel.translateYProperty().bind(stage.heightProperty().multiply(0.003));
-
                 cell.getChildren().add(numberLabel);
+
+                cellPanes[engineIndex] = cell;
                 grid.add(cell, col, row);
-                cellPanes[engineIndex] = cell; 
             }
         }
 
@@ -842,6 +923,23 @@ public class Game extends Application {
             return boardRow * 10 + col + 1;
         } else {
             return boardRow * 10 + (9 - col) + 1;
+        }
+    }
+    private boolean containsIndex(int[] arr, int target) {
+        for (int val : arr)
+            if (val == target) return true;
+        return false;
+    }
+
+    private String getMonsterImageForCell(int cellIndex) {
+        switch (cellIndex) {
+            case 2:  return "Monsters/char_randall.png";
+            case 18: return "Monsters/char_roz.png";
+            case 34: return "Monsters/char_waternoose.png";
+            case 54: return "Monsters/char_celia.png";
+            case 82: return "Monsters/char_fungus.png";
+            case 88: return "Monsters/char_yeti.png";
+            default: return null;
         }
     }
     
