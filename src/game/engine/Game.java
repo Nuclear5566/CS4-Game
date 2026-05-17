@@ -509,6 +509,8 @@ public class Game extends Application {
         // ─── DYNAMIC LABELS FOR ENGINE INTEGRATION ────────────────────────────
         Label p1EnergyLabel = new Label("1000");
         Label p2EnergyLabel = new Label("1000");
+        Label p1PosLabel = new Label("Current Pos: 0");
+        Label p2PosLabel = new Label("Current Pos: 0");
 
         Label turnIndicator = new Label();
         turnIndicator.setStyle("-fx-text-fill: #ff6b35; -fx-font-size: 36px; -fx-font-weight: bold; -fx-font-family: 'Impact';");
@@ -732,11 +734,9 @@ public class Game extends Application {
         diceRow.setAlignment(Pos.CENTER_LEFT);
         diceRow.setStyle("-fx-text-fill: white; -fx-font-size: 28px; -fx-font-family: 'Impact';");
 
-        VBox leftPanel = new VBox(15, player1Panel, player2Panel, turnIndicator, diceRow, cardsRow);
+        VBox leftPanel = new VBox(5, player1Panel, player2Panel, turnIndicator, diceRow, cardsRow);
         leftPanel.setAlignment(Pos.TOP_LEFT);
-        leftPanel.paddingProperty().bind(root.widthProperty().asObject().map(w -> 
-            new Insets(w.doubleValue() * 0.015, w.doubleValue() * 0.015, w.doubleValue() * 0.04, w.doubleValue() * 0.015)
-        ));
+        leftPanel.setPadding(new Insets(0, 10, 10, 10));
         leftPanel.prefWidthProperty().bind(root.widthProperty().multiply(0.35));
         leftPanel.prefHeightProperty().bind(root.heightProperty());
 
@@ -954,56 +954,82 @@ public class Game extends Application {
     }
 
     private VBox createPlayerPanel(Pane root, String titleName, Monster monster, Label energyLabel, Button powerupBtn) {
-        String monsterImagePath = (monster.getRole() == Role.SCARER) ? "ScarerPickGroup.png" : "LaugherPickGroup.png";
-        ImageView monsterImg = new ImageView(new Image(monsterImagePath));
-        monsterImg.setPreserveRatio(true);
-        monsterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.06));
+        // Monster image
+    	ImageView monsterImg = new ImageView(new Image(getMonsterImageByName(monster.getName())));
+    	monsterImg.setPreserveRatio(true);
+    	monsterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.08));
 
-        Label nameLabel = new Label(titleName + "\nName: " + monster.getName());
-        nameLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: #ff6b35; -fx-font-size: ", root.heightProperty().multiply(0.018).asString("%.0f"), "px;"));
-        nameLabel.setWrapText(true);
+        // Title label
+        Label titleLabel = new Label(titleName);
+        titleLabel.styleProperty().bind(Bindings.concat(
+            "-fx-font-family: 'Impact'; -fx-text-fill: #ff6b35; -fx-font-size: ",
+            root.heightProperty().multiply(0.022).asString("%.0f"),
+            "px;"
+        ));
 
-        HBox nameRow = new HBox(10, monsterImg, nameLabel);
+        // Monster name — bigger font
+        Label nameLabel = new Label(monster.getName());
+        nameLabel.styleProperty().bind(Bindings.concat(
+            "-fx-font-family: 'Impact'; -fx-text-fill: white; -fx-font-size: ",
+            root.heightProperty().multiply(0.024).asString("%.0f"),
+            "px;"
+        ));
+
+        VBox nameTextBox = new VBox(1, titleLabel, nameLabel);
+        nameTextBox.setAlignment(Pos.CENTER_LEFT);
+
+        HBox nameRow = new HBox(8, monsterImg, nameTextBox);
         nameRow.setAlignment(Pos.CENTER_LEFT);
 
+        // Type brushstroke
         ImageView brushBg = new ImageView(new Image("titlescreenbuttonbackground.png"));
         brushBg.setPreserveRatio(false);
-        brushBg.fitWidthProperty().bind(root.widthProperty().multiply(0.18)); 
+        brushBg.fitWidthProperty().bind(root.widthProperty().multiply(0.15));
         brushBg.fitHeightProperty().bind(root.heightProperty().multiply(0.04));
 
-        Label typeLabel = new Label("Type: " + monster.getClass().getSimpleName());
-        typeLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: #FFD700; -fx-font-size: ", root.heightProperty().multiply(0.016).asString("%.0f"), "px;"));
+        Label typeLabel = new Label(monster.getClass().getSimpleName());
+        typeLabel.styleProperty().bind(Bindings.concat(
+            "-fx-font-family: 'Impact'; -fx-text-fill: #FFD700; -fx-font-size: ",
+            root.heightProperty().multiply(0.022).asString("%.0f"),
+            "px;"
+        ));
         StackPane typeBox = new StackPane(brushBg, typeLabel);
-        StackPane.setAlignment(typeLabel, Pos.CENTER); 
-        
-        VBox typeContainer = new VBox(5, typeBox);
-        typeContainer.setAlignment(Pos.CENTER_LEFT);
+        StackPane.setAlignment(typeLabel, Pos.CENTER);
 
+        // Canister + energy
         ImageView canisterImg = new ImageView(new Image("Scream_Canister.png"));
         canisterImg.setPreserveRatio(true);
-        canisterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.020));
+        canisterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.018));
 
-        energyLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: white; -fx-font-size: ", root.heightProperty().multiply(0.025).asString("%.0f"), "px;"));
+        energyLabel.styleProperty().bind(Bindings.concat(
+            "-fx-font-family: 'Impact'; -fx-text-fill: white; -fx-font-size: ",
+            root.heightProperty().multiply(0.022).asString("%.0f"),
+            "px;"
+        ));
 
-        HBox energyStatsRow = new HBox(15, canisterImg, energyLabel);
-        energyStatsRow.setAlignment(Pos.CENTER_LEFT);
-        
-        VBox blackArea = new VBox(10, energyStatsRow, powerupBtn);
-        blackArea.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 15px; -fx-padding: 10;");
+        HBox energyRow = new HBox(8, canisterImg, energyLabel);
+        energyRow.setAlignment(Pos.CENTER_LEFT);
 
-        // RESTORED: Background panel is now exactly where it used to be
+        // Compact black box
+        VBox blackArea = new VBox(5, energyRow, powerupBtn);
+        blackArea.setStyle(
+            "-fx-background-color: rgba(0,0,0,0.5);" +
+            "-fx-background-radius: 10px;" +
+            "-fx-padding: 6;"
+        );
+        blackArea.prefWidthProperty().bind(root.widthProperty().multiply(0.18));
+
+        // Panel background
         ImageView panelBg = new ImageView(new Image("titlescreenbuttonbackground.png"));
         panelBg.setPreserveRatio(false);
-        panelBg.fitWidthProperty().bind(root.widthProperty().multiply(0.32));
-        panelBg.fitHeightProperty().bind(root.heightProperty().multiply(0.25)); 
+        panelBg.fitWidthProperty().bind(root.widthProperty().multiply(0.28));
+        panelBg.fitHeightProperty().bind(root.heightProperty().multiply(0.19));
         panelBg.setOpacity(0.4);
 
-        VBox content = new VBox(8, nameRow, typeContainer, blackArea);
+        VBox content = new VBox(4, nameRow, typeBox, blackArea);
         content.setAlignment(Pos.TOP_LEFT);
-        // FIX: Only the content (orange text, image, etc.) is pushed down into the black shaded area using dynamic top padding.
-        content.paddingProperty().bind(root.heightProperty().asObject().map(h -> new Insets(h.doubleValue() * 0.03, 10, 10, 15)));
+        content.setPadding(new Insets(20, 8, 8, 8));
 
-        // StackPane holds the background at the Top Left natively, but the content inside gets pushed down.
         StackPane panelStack = new StackPane(panelBg, content);
         panelStack.setAlignment(Pos.TOP_LEFT);
 
@@ -1036,7 +1062,19 @@ public class Game extends Application {
         btn.setOnMouseExited(e -> { btn.setOpacity(1.0); btn.setScaleX(1.0); btn.setScaleY(1.0); });
         return btn;
     }
-    
+    private String getMonsterImageByName(String name) {
+        switch (name) {
+            case "James P. Sullivan": return "Monsters/char_sulley.png";
+            case "Mike Wazowski":     return "Monsters/char_mike.png";
+            case "Randall Boggs":     return "Monsters/char_randall.png";
+            case "Celia Mae":         return "Monsters/char_celia.png";
+            case "Roz":               return "Monsters/char_roz.png";
+            case "Fungus":            return "Monsters/char_fungus.png";
+            case "Henry J. Waternoose": return "Monsters/char_waternoose.png";
+            case "Yeti":              return "Monsters/char_yeti.png";
+            default:                  return "Monsters/char_sulley.png";
+        }
+    }
     private int getCellNumber(int row, int col) {
         int boardRow = 9 - row; 
         if (boardRow % 2 == 0) {
