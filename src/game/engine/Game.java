@@ -469,6 +469,9 @@ public class Game extends Application {
         
         ImageView background = new ImageView(new Image("background(1st layer).png"));
         background.setPreserveRatio(false);
+        GaussianBlur blur = new GaussianBlur(20);
+        background.setEffect(blur);
+        
 
         // State trackers for enforcing game logic rules
         final boolean[] mustDrawCard = {false};
