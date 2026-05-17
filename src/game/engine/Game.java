@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Random;
 
 import javafx.application.Application;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -32,6 +33,11 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.animation.ScaleTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.TranslateTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 import javafx.beans.binding.Bindings;
 
@@ -101,7 +107,6 @@ public class Game extends Application {
         if (current.getEnergy() < Constants.POWERUP_COST)
             throw new OutOfEnergyException("Not enough energy to use powerup");
         current.executePowerupEffect(getCurrentOpponent());
-        // Restored: Deducts the energy cost from the monster through the engine
         current.setEnergy(current.getEnergy() - Constants.POWERUP_COST);
     }
 
@@ -109,7 +114,7 @@ public class Game extends Application {
         if (current.isFrozen()) {
             System.out.println(current.getName() + " is frozen! Turn skipped.");
             current.setFrozen(false);
-            lastRoll = 0; // Visual indicator that turn was skipped
+            lastRoll = 0; 
             switchTurn();
             return;
         }
@@ -146,16 +151,26 @@ public class Game extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Door Dash");
+        
+        primaryStage.setMinWidth(1024);
+        primaryStage.setMinHeight(768);
+        
+        primaryStage.setWidth(1024);
+        primaryStage.setHeight(768);
+        
         primaryStage.setScene(createTitleScene(primaryStage));
-        primaryStage.setMaximized(true);
-        primaryStage.setFullScreenExitHint("");
-        primaryStage.setFullScreen(true);
+        
+        primaryStage.setMaximized(true); 
+        primaryStage.setResizable(true);
         primaryStage.show();
-        primaryStage.setMinWidth(800);
-        primaryStage.setMinHeight(500);
     }
 
     private Scene createTitleScene(Stage stage) {
+        StackPane root = new StackPane();
+        double w = stage.getWidth() > 0 ? stage.getWidth() : 1024;
+        double h = stage.getHeight() > 0 ? stage.getHeight() : 768;
+        Scene scene = new Scene(root, w, h);
+        
         stage.getIcons().add(new Image("gameNameTitle.png"));
 
         ImageView background = new ImageView(new Image("background(1st layer).png"));
@@ -166,22 +181,22 @@ public class Game extends Application {
 
         ImageView titleLogo = new ImageView(new Image("gameNameTitle.png"));
         titleLogo.setPreserveRatio(true);
-        titleLogo.fitWidthProperty().bind(stage.widthProperty().multiply(0.4));
+        titleLogo.fitWidthProperty().bind(root.widthProperty().multiply(0.4));
 
         Pane titleLayer = new Pane();
         titleLogo.layoutXProperty().bind(
-            stage.widthProperty().multiply(0.25)
-            .subtract(stage.widthProperty().multiply(0.4).divide(2))
+            root.widthProperty().multiply(0.25)
+            .subtract(root.widthProperty().multiply(0.4).divide(2))
         );
         titleLogo.layoutYProperty().bind(
-            stage.heightProperty().multiply(0.5)
+            root.heightProperty().multiply(0.5)
             .subtract(titleLogo.fitWidthProperty().divide(2))
         );
         titleLayer.getChildren().add(titleLogo);
         titleLayer.setPickOnBounds(false);
 
-        StackPane playBtn = createImageButton("titlescreenbuttonbackground.png", "PLAY.png", stage, 0.22, 0.18, 0.8);
-        StackPane creditsBtn = createImageButton("titlescreenbuttonbackground.png", "CREDITS.png", stage, 0.22, 0.18, 0.6);
+        StackPane playBtn = createImageButton("titlescreenbuttonbackground.png", "PLAY.png", root, 0.22, 0.18, 0.8);
+        StackPane creditsBtn = createImageButton("titlescreenbuttonbackground.png", "CREDITS.png", root, 0.22, 0.18, 0.6);
 
         playBtn.setOnMouseClicked(e -> stage.setScene(createInstructionsScene(stage)));
         creditsBtn.setOnMouseClicked(e -> stage.setScene(createCreditsScene(stage)));
@@ -190,33 +205,32 @@ public class Game extends Application {
         creditsBtn.setPickOnBounds(true);
 
         playBtn.layoutXProperty().bind(
-            stage.widthProperty().multiply(0.75)
-            .subtract(stage.widthProperty().multiply(0.01).divide(2))
+            root.widthProperty().multiply(0.75)
+            .subtract(root.widthProperty().multiply(0.01).divide(2))
         );
         playBtn.layoutYProperty().bind(
-            stage.heightProperty().multiply(0.55)
-            .subtract(stage.heightProperty().multiply(0.18).divide(2))
+            root.heightProperty().multiply(0.55)
+            .subtract(root.heightProperty().multiply(0.18).divide(2))
         );
         creditsBtn.layoutXProperty().bind(
-            stage.widthProperty().multiply(0.95)
-            .subtract(stage.widthProperty().multiply(0.40).divide(2))
+            root.widthProperty().multiply(0.95)
+            .subtract(root.widthProperty().multiply(0.40).divide(2))
         );
         creditsBtn.layoutYProperty().bind(
-            stage.heightProperty().multiply(0.73)
-            .subtract(stage.heightProperty().multiply(0.18).divide(2))
+            root.heightProperty().multiply(0.73)
+            .subtract(root.heightProperty().multiply(0.18).divide(2))
         );
 
         Pane buttonLayer = new Pane();
         buttonLayer.getChildren().addAll(playBtn, creditsBtn);
         buttonLayer.setPickOnBounds(false);
 
-        StackPane root = new StackPane(background, layer2, titleLayer, buttonLayer);
-        Scene scene = new Scene(root);
+        root.getChildren().addAll(background, layer2, titleLayer, buttonLayer);
 
-        background.fitWidthProperty().bind(scene.widthProperty());
-        background.fitHeightProperty().bind(scene.heightProperty());
-        layer2.fitWidthProperty().bind(scene.widthProperty());
-        layer2.fitHeightProperty().bind(scene.heightProperty());
+        background.fitWidthProperty().bind(root.widthProperty());
+        background.fitHeightProperty().bind(root.heightProperty());
+        layer2.fitWidthProperty().bind(root.widthProperty());
+        layer2.fitHeightProperty().bind(root.heightProperty());
 
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE)
@@ -227,6 +241,9 @@ public class Game extends Application {
     }
 
     private Scene createInstructionsScene(Stage stage) {
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
+        
         ImageView background = new ImageView(new Image("background(1st layer).png"));
         background.setPreserveRatio(false);
 
@@ -236,8 +253,8 @@ public class Game extends Application {
         Rectangle overlay = new Rectangle();
         overlay.setFill(Color.BLACK);
         overlay.setOpacity(0.65);
-        overlay.widthProperty().bind(stage.widthProperty());
-        overlay.heightProperty().bind(stage.heightProperty());
+        overlay.widthProperty().bind(root.widthProperty());
+        overlay.heightProperty().bind(root.heightProperty());
 
         Label title = new Label("HOW TO PLAY");
         title.setStyle(
@@ -299,12 +316,11 @@ public class Game extends Application {
         content.setAlignment(Pos.TOP_CENTER);
         content.setPadding(new Insets(40, 40, 40, 40));
 
-        StackPane root = new StackPane(background, overlay, content);
-        Scene scene = new Scene(root);
+        root.getChildren().addAll(background, overlay, content);
 
-        background.fitWidthProperty().bind(scene.widthProperty());
-        background.fitHeightProperty().bind(scene.heightProperty());
-        content.maxWidthProperty().bind(scene.widthProperty().multiply(0.8));
+        background.fitWidthProperty().bind(root.widthProperty());
+        background.fitHeightProperty().bind(root.heightProperty());
+        content.maxWidthProperty().bind(root.widthProperty().multiply(0.8));
 
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.F)
@@ -315,6 +331,9 @@ public class Game extends Application {
     }
 
     private Scene createRoleSelectionScene(Stage stage) {
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
+        
         ImageView background = new ImageView(new Image("background(1st layer).png"));
         background.setPreserveRatio(false);
         GaussianBlur blur = new GaussianBlur(20);
@@ -322,29 +341,29 @@ public class Game extends Application {
 
         ImageView scarerGroup = new ImageView(new Image("ScarerPickGroup.png"));
         scarerGroup.setPreserveRatio(true);
-        scarerGroup.fitWidthProperty().bind(stage.widthProperty().multiply(0.30));
+        scarerGroup.fitWidthProperty().bind(root.widthProperty().multiply(0.30));
 
         ImageView scarerDesc = new ImageView(new Image("ScarerTitleDesc.png"));
         scarerDesc.setPreserveRatio(true);
-        scarerDesc.fitWidthProperty().bind(stage.widthProperty().multiply(0.20));
+        scarerDesc.fitWidthProperty().bind(root.widthProperty().multiply(0.20));
 
         ImageView laugherGroup = new ImageView(new Image("LaugherPickGroup.png"));
         laugherGroup.setPreserveRatio(true);
-        laugherGroup.fitWidthProperty().bind(stage.widthProperty().multiply(0.30));
+        laugherGroup.fitWidthProperty().bind(root.widthProperty().multiply(0.30));
 
         ImageView laugherDesc = new ImageView(new Image("LaugherTitleDesc.png"));
         laugherDesc.setPreserveRatio(true);
-        laugherDesc.fitWidthProperty().bind(stage.widthProperty().multiply(0.20));
+        laugherDesc.fitWidthProperty().bind(root.widthProperty().multiply(0.20));
 
-        scarerGroup.layoutXProperty().bind(stage.widthProperty().multiply(0.25).subtract(stage.widthProperty().multiply(0.30).divide(2)));
-        scarerGroup.layoutYProperty().bind(stage.heightProperty().multiply(0.20));
-        scarerDesc.layoutXProperty().bind(stage.widthProperty().multiply(0.25).subtract(stage.widthProperty().multiply(0.20).divide(2)));
-        scarerDesc.layoutYProperty().bind(stage.heightProperty().multiply(0.55));
+        scarerGroup.layoutXProperty().bind(root.widthProperty().multiply(0.25).subtract(root.widthProperty().multiply(0.30).divide(2)));
+        scarerGroup.layoutYProperty().bind(root.heightProperty().multiply(0.20));
+        scarerDesc.layoutXProperty().bind(root.widthProperty().multiply(0.25).subtract(root.widthProperty().multiply(0.20).divide(2)));
+        scarerDesc.layoutYProperty().bind(root.heightProperty().multiply(0.55));
 
-        laugherGroup.layoutXProperty().bind(stage.widthProperty().multiply(0.75).subtract(stage.widthProperty().multiply(0.30).divide(2)));
-        laugherGroup.layoutYProperty().bind(stage.heightProperty().multiply(0.20));
-        laugherDesc.layoutXProperty().bind(stage.widthProperty().multiply(0.75).subtract(stage.widthProperty().multiply(0.20).divide(2)));
-        laugherDesc.layoutYProperty().bind(stage.heightProperty().multiply(0.55));
+        laugherGroup.layoutXProperty().bind(root.widthProperty().multiply(0.75).subtract(root.widthProperty().multiply(0.30).divide(2)));
+        laugherGroup.layoutYProperty().bind(root.heightProperty().multiply(0.20));
+        laugherDesc.layoutXProperty().bind(root.widthProperty().multiply(0.75).subtract(root.widthProperty().multiply(0.20).divide(2)));
+        laugherDesc.layoutYProperty().bind(root.heightProperty().multiply(0.55));
 
         scarerGroup.setOnMouseClicked(e -> startGame(stage, Role.SCARER));
         scarerDesc.setOnMouseClicked(e -> startGame(stage, Role.SCARER));
@@ -369,11 +388,10 @@ public class Game extends Application {
         contentLayer.getChildren().addAll(scarerGroup, scarerDesc, laugherGroup, laugherDesc);
         contentLayer.setPickOnBounds(false);
 
-        StackPane root = new StackPane(background, contentLayer);
-        Scene scene = new Scene(root);
+        root.getChildren().addAll(background, contentLayer);
 
-        background.fitWidthProperty().bind(scene.widthProperty());
-        background.fitHeightProperty().bind(scene.heightProperty());
+        background.fitWidthProperty().bind(root.widthProperty());
+        background.fitHeightProperty().bind(root.heightProperty());
 
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE)
@@ -384,10 +402,13 @@ public class Game extends Application {
     }
 
     private Scene createCreditsScene(Stage stage) {
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
+        
         Rectangle background = new Rectangle();
         background.setFill(Color.BLACK);
-        background.widthProperty().bind(stage.widthProperty());
-        background.heightProperty().bind(stage.heightProperty());
+        background.widthProperty().bind(root.widthProperty());
+        background.heightProperty().bind(root.heightProperty());
 
         Label title = new Label("GAME MADE BY TEAM 188");
         title.setStyle("-fx-font-size: 48px; -fx-font-weight: bold; -fx-text-fill: #ff6b35; -fx-font-family: 'Impact';");
@@ -421,8 +442,7 @@ public class Game extends Application {
         content.setMaxWidth(Double.MAX_VALUE);
         content.setPadding(new Insets(60, 40, 40, 40));
 
-        StackPane root = new StackPane(background, content);
-        Scene scene = new Scene(root);
+        root.getChildren().addAll(background, content);
 
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE)
@@ -444,12 +464,23 @@ public class Game extends Application {
     }
 
     private Scene createGameBoardScene(Stage stage, Role playerRole) {
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
+        
         ImageView background = new ImageView(new Image("background(1st layer).png"));
         background.setPreserveRatio(false);
 
         // State trackers for enforcing game logic rules
         final boolean[] mustDrawCard = {false};
         final boolean[] isRolling = {false};
+        
+        // Trackers for animation interpolation
+        final int[] prevP1Pos = {0};
+        final int[] prevP2Pos = {0};
+        
+        // Animation Safety Trackers to prevent token overlapping bugs
+        final SequentialTransition[] p1Anim = {null};
+        final SequentialTransition[] p2Anim = {null};
 
         // ─── VISUAL TOKENS FOR THE GRID ───────────────────────────────────────
         DropShadow ds = new DropShadow();
@@ -457,14 +488,14 @@ public class Game extends Application {
         ds.setColor(Color.color(0, 0, 0, 0.6));
 
         Circle playerToken = new Circle();
-        playerToken.radiusProperty().bind(stage.heightProperty().multiply(0.010)); 
+        playerToken.radiusProperty().bind(root.heightProperty().multiply(0.010)); 
         playerToken.setFill(Color.web("#3498db")); // Blue for player
         playerToken.setStroke(Color.WHITE);
         playerToken.setStrokeWidth(2);
         playerToken.setEffect(ds);
 
         Circle opponentToken = new Circle();
-        opponentToken.radiusProperty().bind(stage.heightProperty().multiply(0.010));
+        opponentToken.radiusProperty().bind(root.heightProperty().multiply(0.010));
         opponentToken.setFill(Color.web("#e74c3c")); // Red for opponent
         opponentToken.setStroke(Color.WHITE);
         opponentToken.setStrokeWidth(2);
@@ -484,8 +515,8 @@ public class Game extends Application {
         Button p2PowerupBtn = createPowerupButton();
 
         // ─── PLAYER PANELS ────────────────────────────────────────────────────
-        VBox player1Panel = createPlayerPanel(stage, "PLAYER 1 (You)", activeGame.getPlayer(), p1EnergyLabel, p1PowerupBtn);
-        VBox player2Panel = createPlayerPanel(stage, "PLAYER 2 (Opponent)", activeGame.getOpponent(), p2EnergyLabel, p2PowerupBtn);
+        VBox player1Panel = createPlayerPanel(root, "PLAYER 1 (You)", activeGame.getPlayer(), p1EnergyLabel, p1PowerupBtn);
+        VBox player2Panel = createPlayerPanel(root, "PLAYER 2 (Opponent)", activeGame.getOpponent(), p2EnergyLabel, p2PowerupBtn);
 
         // ─── DYNAMIC UPDATE METHOD ────────────────────────────────────────────
         Runnable updateUI = () -> {
@@ -505,26 +536,44 @@ public class Game extends Application {
                 turnIndicator.setText(curr == p1 ? "YOUR TURN!" : "OPPONENT'S TURN!");
             }
 
-            // Move tokens on the board
-            if (playerToken.getParent() != null) ((Pane) playerToken.getParent()).getChildren().remove(playerToken);
-            if (opponentToken.getParent() != null) ((Pane) opponentToken.getParent()).getChildren().remove(opponentToken);
-
             int p1Pos = p1.getPosition();
             int p2Pos = p2.getPosition();
 
-            if (p1Pos == p2Pos) {
-                playerToken.setTranslateX(-8);
-                opponentToken.setTranslateX(8);
-            } else {
-                playerToken.setTranslateX(0);
-                opponentToken.setTranslateX(0);
+            // Determine target offsets to prevent overlapping if they share a cell
+            double p1TargetX = (p1Pos == p2Pos) ? -8 : 0;
+            double p2TargetX = (p1Pos == p2Pos) ? 8 : 0;
+
+            // Safely remove tokens from their current parent pane
+            if (playerToken.getParent() != null) ((Pane) playerToken.getParent()).getChildren().remove(playerToken);
+            if (opponentToken.getParent() != null) ((Pane) opponentToken.getParent()).getChildren().remove(opponentToken);
+
+            // Add tokens to the new destination cell AND bring them to the front of the screen
+            if (cellPanes[p1Pos] != null) {
+                cellPanes[p1Pos].getChildren().add(playerToken);
+                cellPanes[p1Pos].toFront();
+            }
+            if (cellPanes[p2Pos] != null) {
+                cellPanes[p2Pos].getChildren().add(opponentToken);
+                cellPanes[p2Pos].toFront();
             }
 
-            if (cellPanes[p1Pos] != null) cellPanes[p1Pos].getChildren().add(playerToken);
-            if (cellPanes[p2Pos] != null) cellPanes[p2Pos].getChildren().add(opponentToken);
+            // Stop any overlapping animations before playing new ones
+            if (p1Anim[0] != null) p1Anim[0].stop();
+            if (p2Anim[0] != null) p2Anim[0].stop();
+
+            // Trigger the animation
+            p1Anim[0] = animateToken(playerToken, prevP1Pos[0], p1Pos, p1TargetX, 0, cellPanes);
+            p2Anim[0] = animateToken(opponentToken, prevP2Pos[0], p2Pos, p2TargetX, 0, cellPanes);
+
+            if (p1Anim[0] != null) p1Anim[0].play();
+            if (p2Anim[0] != null) p2Anim[0].play();
+
+            // Save the current positions to be used as 'old' positions on the next turn
+            prevP1Pos[0] = p1Pos;
+            prevP2Pos[0] = p2Pos;
         };
 
-        // Actions for PowerUp Buttons (Validated directly via click handlers)
+        // Actions for PowerUp Buttons
         p1PowerupBtn.setOnAction(e -> {
             if (activeGame.getCurrent() != activeGame.getPlayer()) {
                 turnIndicator.setText("NOT YOUR TURN!");
@@ -587,8 +636,12 @@ public class Game extends Application {
                         mustDrawCard[0] = true;
                     }
                     updateUI.run();
+                } catch (InvalidMoveException ex) {
+                    diceLabel.setText(String.valueOf(activeGame.getLastRoll()));
+                    turnIndicator.setText("CELL OCCUPIED! ROLL AGAIN!");
+                    System.out.println("Move blocked: Cell already occupied.");
                 } catch (Exception ex) {
-                    System.out.println("Invalid Move Exception Caught!");
+                    System.out.println("Other Exception Caught: " + ex.getMessage());
                 }
                 isRolling[0] = false;
             });
@@ -599,28 +652,28 @@ public class Game extends Application {
         // ─── CARD DRAWING ───
         ImageView cardBack = new ImageView(new Image("Cards/cardstack.png"));
         cardBack.setPreserveRatio(false);
-        cardBack.fitWidthProperty().bind(stage.widthProperty().multiply(0.11));
-        cardBack.fitHeightProperty().bind(stage.heightProperty().multiply(0.32));
+        cardBack.fitWidthProperty().bind(root.widthProperty().multiply(0.11));
+        cardBack.fitHeightProperty().bind(root.heightProperty().multiply(0.32));
         cardBack.setStyle("-fx-cursor: hand;");
 
         ImageView cardPicked = new ImageView();
         cardPicked.setPreserveRatio(false);
-        cardPicked.fitWidthProperty().bind(stage.widthProperty().multiply(0.11));
-        cardPicked.fitHeightProperty().bind(stage.heightProperty().multiply(0.32));
+        cardPicked.fitWidthProperty().bind(root.widthProperty().multiply(0.11));
+        cardPicked.fitHeightProperty().bind(root.heightProperty().multiply(0.32));
         cardPicked.setVisible(false);
 
         ImageView overlayCard = new ImageView();
         overlayCard.setPreserveRatio(false);
-        overlayCard.fitWidthProperty().bind(stage.widthProperty().multiply(0.18));
-        overlayCard.fitHeightProperty().bind(stage.heightProperty().multiply(0.50));
+        overlayCard.fitWidthProperty().bind(root.widthProperty().multiply(0.18));
+        overlayCard.fitHeightProperty().bind(root.heightProperty().multiply(0.50));
         overlayCard.setVisible(false);
 
         Rectangle overlayBg = new Rectangle();
         overlayBg.setFill(Color.BLACK);
         overlayBg.setOpacity(0.7);
         overlayBg.setVisible(false);
-        overlayBg.widthProperty().bind(stage.widthProperty());
-        overlayBg.heightProperty().bind(stage.heightProperty());
+        overlayBg.widthProperty().bind(root.widthProperty());
+        overlayBg.heightProperty().bind(root.heightProperty());
 
         overlayBg.setOnMouseClicked(e -> { overlayBg.setVisible(false); overlayCard.setVisible(false); cardPicked.setVisible(true); });
         overlayCard.setOnMouseClicked(e -> { overlayBg.setVisible(false); overlayCard.setVisible(false); cardPicked.setVisible(true); });
@@ -630,10 +683,7 @@ public class Game extends Application {
             mustDrawCard[0] = false; 
             
             try {
-                // 1. Draw the card from the Engine
                 Card drawnCard = Board.drawCard();
-                
-                // 2. Format the Name to match the file path (e.g., "Position Swap" -> "PositionSwap.png")
                 String imageFileName = drawnCard.getName().replace(" ", "") + ".png";
                 Image realCardImage = new Image("Cards/" + imageFileName);
                 
@@ -641,12 +691,10 @@ public class Game extends Application {
                 cardPicked.setImage(realCardImage);
                 cardPicked.setVisible(false);
 
-                // 3. Actually perform the Action on the Monsters
                 Monster drawer = activeGame.getCurrent() == activeGame.getPlayer() ? activeGame.getOpponent() : activeGame.getPlayer();
                 Monster waiting = activeGame.getCurrent();
                 drawnCard.performAction(drawer, waiting);
 
-                // 4. Animate it
                 ScaleTransition shrink = new ScaleTransition(Duration.millis(150), overlayCard);
                 shrink.setFromX(1); shrink.setToX(0);
 
@@ -656,7 +704,7 @@ public class Game extends Application {
                 shrink.setOnFinished(ev -> {
                     overlayCard.setVisible(true);
                     grow.play();
-                    updateUI.run(); // Updates energy/positions after card effect
+                    updateUI.run(); 
                 });
 
                 overlayBg.setVisible(true);
@@ -670,10 +718,10 @@ public class Game extends Application {
 
         HBox cardsRow = new HBox();
         cardsRow.setAlignment(Pos.BOTTOM_LEFT);
-        cardsRow.spacingProperty().bind(stage.widthProperty().multiply(0.01));
+        cardsRow.spacingProperty().bind(root.widthProperty().multiply(0.01));
         
-        cardsRow.translateYProperty().bind(stage.heightProperty().multiply(-0.12)); 
-        cardsRow.translateXProperty().bind(stage.widthProperty().multiply(0.14));  
+        cardsRow.translateYProperty().bind(root.heightProperty().multiply(-0.12)); 
+        cardsRow.translateXProperty().bind(root.widthProperty().multiply(0.14));  
         cardsRow.getChildren().addAll(cardBack, cardPicked);
 
         // ─── LEFT PANEL ASSEMBLY ───────────────────────────────────────────────
@@ -683,18 +731,18 @@ public class Game extends Application {
 
         VBox leftPanel = new VBox(15, player1Panel, player2Panel, turnIndicator, diceRow, cardsRow);
         leftPanel.setAlignment(Pos.TOP_LEFT);
-        leftPanel.paddingProperty().bind(stage.widthProperty().asObject().map(w -> 
+        leftPanel.paddingProperty().bind(root.widthProperty().asObject().map(w -> 
             new Insets(w.doubleValue() * 0.015, w.doubleValue() * 0.015, w.doubleValue() * 0.04, w.doubleValue() * 0.015)
         ));
-        leftPanel.prefWidthProperty().bind(stage.widthProperty().multiply(0.35));
-        leftPanel.prefHeightProperty().bind(stage.heightProperty());
+        leftPanel.prefWidthProperty().bind(root.widthProperty().multiply(0.35));
+        leftPanel.prefHeightProperty().bind(root.heightProperty());
 
         // ─── GRID ─────────────────────────────────────────────────────────────
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
-        grid.hgapProperty().bind(stage.widthProperty().multiply(0.003));
-        grid.vgapProperty().bind(stage.heightProperty().multiply(0.005));
-        grid.paddingProperty().bind(stage.widthProperty().asObject().map(w -> new Insets(w.doubleValue() * 0.008)));
+        grid.hgapProperty().bind(root.widthProperty().multiply(0.003));
+        grid.vgapProperty().bind(root.heightProperty().multiply(0.005));
+        grid.paddingProperty().bind(root.widthProperty().asObject().map(w -> new Insets(w.doubleValue() * 0.008)));
 
         for (int row = 0; row < 10; row++) {
             for (int col = 0; col < 10; col++) {
@@ -702,11 +750,10 @@ public class Game extends Application {
                 int engineIndex = cellNumber - 1;
 
                 StackPane cell = new StackPane();
-                cell.prefWidthProperty().bind(stage.heightProperty().multiply(0.85).divide(10).subtract(4));
-                cell.prefHeightProperty().bind(stage.heightProperty().multiply(0.85).divide(10).subtract(4));
+                cell.prefWidthProperty().bind(root.heightProperty().multiply(0.85).divide(10).subtract(4));
+                cell.prefHeightProperty().bind(root.heightProperty().multiply(0.85).divide(10).subtract(4));
 
                 if (engineIndex == 99) {
-                    // Boo's Door
                     cell.setStyle("-fx-background-color: #FFD700; -fx-border-color: #FFA500; -fx-border-width: 2px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     Label winLabel = new Label("BOO'S\nDOOR");
                     winLabel.setStyle("-fx-font-size: 8px; -fx-text-fill: #8B0000; -fx-font-weight: bold;");
@@ -714,14 +761,12 @@ public class Game extends Application {
                     cell.getChildren().add(winLabel);
 
                 } else if (engineIndex == 0) {
-                    // Start
                     cell.setStyle("-fx-background-color: #c8f0c8; -fx-border-color: #4caf50; -fx-border-width: 2px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     Label startLabel = new Label("START");
                     startLabel.setStyle("-fx-font-size: 8px; -fx-text-fill: #1a5c1a; -fx-font-weight: bold;");
                     cell.getChildren().add(startLabel);
 
                 } else if (containsIndex(Constants.MONSTER_CELL_INDICES, engineIndex)) {
-                    // Monster Cell
                     cell.setStyle("-fx-background-color: #4a90d9; -fx-border-color: #2c5f8a; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     String monsterImg = getMonsterImageForCell(engineIndex);
                     if (monsterImg != null) {
@@ -733,7 +778,6 @@ public class Game extends Application {
                     }
 
                 } else if (containsIndex(Constants.CONVEYOR_CELL_INDICES, engineIndex)) {
-                    // Conveyor Belt
                     cell.setStyle("-fx-background-color: #5cb85c; -fx-border-color: #3d7a3d; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     ImageView conveyorView = new ImageView(new Image("conveyor_belt.png"));
                     conveyorView.setPreserveRatio(true);
@@ -742,7 +786,6 @@ public class Game extends Application {
                     cell.getChildren().add(conveyorView);
 
                 } else if (containsIndex(Constants.SOCK_CELL_INDICES, engineIndex)) {
-                    // Contamination Sock
                     cell.setStyle("-fx-background-color: #e8a838; -fx-border-color: #b07820; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     ImageView sockView = new ImageView(new Image("socks.png"));
                     sockView.setPreserveRatio(true);
@@ -751,7 +794,6 @@ public class Game extends Application {
                     cell.getChildren().add(sockView);
 
                 } else if (containsIndex(Constants.CARD_CELL_INDICES, engineIndex)) {
-                    // Card Cell
                     cell.setStyle("-fx-background-color: #d9534f; -fx-border-color: #8a2c2c; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     ImageView cardView = new ImageView(new Image("Cards/CardBack.png"));
                     cardView.setPreserveRatio(true);
@@ -760,7 +802,6 @@ public class Game extends Application {
                     cell.getChildren().add(cardView);
 
                 } else if (engineIndex % 2 != 0) {
-                    // Door Cell — odd indices alternate SCARER/LAUGHER
                     boolean isScarerDoor = ((engineIndex - 1) / 2) % 2 == 0;
                     if (isScarerDoor) {
                         cell.setStyle("-fx-background-color: #ffb6c1; -fx-border-color: #cc4466; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
@@ -779,19 +820,17 @@ public class Game extends Application {
                     }
 
                 } else {
-                    // Normal Cell
                     cell.setStyle("-fx-background-color: #f5f0d0; -fx-border-color: #c8b870; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                 }
 
-                // Cell number always on top left
                 Label numberLabel = new Label(String.valueOf(cellNumber));
                 numberLabel.styleProperty().bind(
-                    stage.heightProperty().multiply(0.013)
+                    root.heightProperty().multiply(0.013)
                     .asString("-fx-font-size: %.0fpx; -fx-text-fill: #333333; -fx-font-weight: bold;")
                 );
                 StackPane.setAlignment(numberLabel, Pos.TOP_LEFT);
-                numberLabel.translateXProperty().bind(stage.widthProperty().multiply(0.003));
-                numberLabel.translateYProperty().bind(stage.heightProperty().multiply(0.003));
+                numberLabel.translateXProperty().bind(root.widthProperty().multiply(0.003));
+                numberLabel.translateYProperty().bind(root.heightProperty().multiply(0.003));
                 cell.getChildren().add(numberLabel);
 
                 cellPanes[engineIndex] = cell;
@@ -801,13 +840,12 @@ public class Game extends Application {
 
         StackPane gridContainer = new StackPane(grid);
         gridContainer.setAlignment(Pos.CENTER);
-        gridContainer.prefWidthProperty().bind(stage.widthProperty().multiply(0.62));
-        gridContainer.paddingProperty().bind(stage.widthProperty().asObject().map(w -> 
+        gridContainer.prefWidthProperty().bind(root.widthProperty().multiply(0.62));
+        gridContainer.paddingProperty().bind(root.widthProperty().asObject().map(w -> 
             new Insets(w.doubleValue() * 0.015, w.doubleValue() * 0.02, w.doubleValue() * 0.015, 0)
         ));
         StackPane.setAlignment(gridContainer, Pos.CENTER_RIGHT);
 
-        // Run UI update once to position tokens initially
         updateUI.run();
 
         // ─── MAIN LAYOUT ──────────────────────────────────────────────────────
@@ -817,11 +855,10 @@ public class Game extends Application {
         StackPane.setAlignment(overlayCard, Pos.CENTER);
         StackPane.setMargin(overlayCard, new Insets(150, 0, 0, 0));
 
-        StackPane root = new StackPane(background, mainLayout, overlayBg, overlayCard);
-        Scene scene = new Scene(root);
+        root.getChildren().addAll(background, mainLayout, overlayBg, overlayCard);
 
-        background.fitWidthProperty().bind(scene.widthProperty());
-        background.fitHeightProperty().bind(scene.heightProperty());
+        background.fitWidthProperty().bind(root.widthProperty());
+        background.fitHeightProperty().bind(root.heightProperty());
 
         scene.setOnKeyPressed(ev -> {
             if (ev.getCode() == KeyCode.ESCAPE) stage.setScene(createRoleSelectionScene(stage));
@@ -831,41 +868,119 @@ public class Game extends Application {
     }
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
+    
+    private SequentialTransition animateToken(Node token, int oldPos, int newPos, double targetX, double targetY, StackPane[] cellPanes) {
+        if (oldPos == newPos || cellPanes[oldPos] == null || cellPanes[newPos] == null) {
+            token.setTranslateX(targetX);
+            token.setTranslateY(targetY);
+            token.setScaleX(1.0);
+            token.setScaleY(1.0);
+            token.setRotate(0);
+            return null;
+        }
 
-    private VBox createPlayerPanel(Stage stage, String titleName, Monster monster, Label energyLabel, Button powerupBtn) {
-        // Monster Image
+        SequentialTransition seq = new SequentialTransition();
+        int intermediatePos = newPos;
+
+        if (containsIndex(Constants.CARD_CELL_INDICES, oldPos)) {
+            intermediatePos = oldPos; 
+        } 
+        else if (newPos < oldPos) {
+            for (int i = oldPos + 1; i <= Math.min(99, oldPos + 18); i++) {
+                if (containsIndex(Constants.SOCK_CELL_INDICES, i)) {
+                    intermediatePos = i;
+                    break;
+                }
+            }
+        } 
+        else {
+            int foundConveyor = -1;
+            for (int i = oldPos + 1; i <= Math.min(99, oldPos + 18); i++) {
+                if (containsIndex(Constants.CONVEYOR_CELL_INDICES, i)) {
+                    foundConveyor = i;
+                    break;
+                }
+            }
+            if (foundConveyor != -1 && newPos >= foundConveyor + 6) {
+                intermediatePos = foundConveyor;
+            }
+        }
+
+        if (intermediatePos > oldPos) {
+            token.setTranslateX(cellPanes[oldPos].getLayoutX() - cellPanes[newPos].getLayoutX() + targetX);
+            token.setTranslateY(cellPanes[oldPos].getLayoutY() - cellPanes[newPos].getLayoutY() + targetY);
+
+            for (int i = oldPos; i < intermediatePos; i++) {
+                TranslateTransition step = new TranslateTransition(Duration.millis(300), token); 
+                step.setFromX(cellPanes[i].getLayoutX() - cellPanes[newPos].getLayoutX() + targetX);
+                step.setFromY(cellPanes[i].getLayoutY() - cellPanes[newPos].getLayoutY() + targetY);
+                step.setToX(cellPanes[i+1].getLayoutX() - cellPanes[newPos].getLayoutX() + targetX);
+                step.setToY(cellPanes[i+1].getLayoutY() - cellPanes[newPos].getLayoutY() + targetY);
+                seq.getChildren().add(step);
+            }
+        } else {
+            intermediatePos = oldPos;
+            token.setTranslateX(cellPanes[oldPos].getLayoutX() - cellPanes[newPos].getLayoutX() + targetX);
+            token.setTranslateY(cellPanes[oldPos].getLayoutY() - cellPanes[newPos].getLayoutY() + targetY);
+        }
+
+        if (intermediatePos != newPos) {
+            PauseTransition pause = new PauseTransition(Duration.millis(600));
+            seq.getChildren().add(pause);
+
+            TranslateTransition jump = new TranslateTransition(Duration.millis(900), token);
+            jump.setFromX(cellPanes[intermediatePos].getLayoutX() - cellPanes[newPos].getLayoutX() + targetX);
+            jump.setFromY(cellPanes[intermediatePos].getLayoutY() - cellPanes[newPos].getLayoutY() + targetY);
+            jump.setToX(targetX);
+            jump.setToY(targetY);
+
+            RotateTransition rt = new RotateTransition(Duration.millis(900), token);
+            rt.setByAngle(720);
+
+            ScaleTransition st = new ScaleTransition(Duration.millis(450), token);
+            st.setFromX(1.0); st.setFromY(1.0);
+            st.setToX(1.6); st.setToY(1.6);
+            st.setAutoReverse(true);
+            st.setCycleCount(2);
+
+            ParallelTransition jumpPt = new ParallelTransition(jump, rt, st);
+            seq.getChildren().add(jumpPt);
+        }
+
+        return seq;
+    }
+
+    private VBox createPlayerPanel(Pane root, String titleName, Monster monster, Label energyLabel, Button powerupBtn) {
         String monsterImagePath = (monster.getRole() == Role.SCARER) ? "ScarerPickGroup.png" : "LaugherPickGroup.png";
         ImageView monsterImg = new ImageView(new Image(monsterImagePath));
         monsterImg.setPreserveRatio(true);
-        monsterImg.fitWidthProperty().bind(stage.widthProperty().multiply(0.06));
+        monsterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.06));
 
-        // Name Label (Title + Name)
         Label nameLabel = new Label(titleName + "\nName: " + monster.getName());
-        nameLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: #ff6b35; -fx-font-size: ", stage.heightProperty().multiply(0.022).asString("%.0f"), "px;"));
+        nameLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: #ff6b35; -fx-font-size: ", root.heightProperty().multiply(0.018).asString("%.0f"), "px;"));
         nameLabel.setWrapText(true);
 
         HBox nameRow = new HBox(10, monsterImg, nameLabel);
         nameRow.setAlignment(Pos.CENTER_LEFT);
 
-        // Type Label explicitly stated and placed nicely in the brush box
         ImageView brushBg = new ImageView(new Image("titlescreenbuttonbackground.png"));
         brushBg.setPreserveRatio(false);
-        brushBg.fitWidthProperty().bind(stage.widthProperty().multiply(0.15)); 
-        brushBg.fitHeightProperty().bind(stage.heightProperty().multiply(0.04));
+        brushBg.fitWidthProperty().bind(root.widthProperty().multiply(0.18)); 
+        brushBg.fitHeightProperty().bind(root.heightProperty().multiply(0.04));
 
         Label typeLabel = new Label("Type: " + monster.getClass().getSimpleName());
-        typeLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: #FFD700; -fx-font-size: ", stage.heightProperty().multiply(0.018).asString("%.0f"), "px;"));
+        typeLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: #FFD700; -fx-font-size: ", root.heightProperty().multiply(0.016).asString("%.0f"), "px;"));
         StackPane typeBox = new StackPane(brushBg, typeLabel);
+        StackPane.setAlignment(typeLabel, Pos.CENTER); 
         
         VBox typeContainer = new VBox(5, typeBox);
         typeContainer.setAlignment(Pos.CENTER_LEFT);
 
-        // Black Area with Canister, Energy, and PowerUp Button
         ImageView canisterImg = new ImageView(new Image("Scream_Canister.png"));
         canisterImg.setPreserveRatio(true);
-        canisterImg.fitWidthProperty().bind(stage.widthProperty().multiply(0.020));
+        canisterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.020));
 
-        energyLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: white; -fx-font-size: ", stage.heightProperty().multiply(0.025).asString("%.0f"), "px;"));
+        energyLabel.styleProperty().bind(Bindings.concat("-fx-font-family: 'Impact'; -fx-text-fill: white; -fx-font-size: ", root.heightProperty().multiply(0.025).asString("%.0f"), "px;"));
 
         HBox energyStatsRow = new HBox(15, canisterImg, energyLabel);
         energyStatsRow.setAlignment(Pos.CENTER_LEFT);
@@ -873,17 +988,19 @@ public class Game extends Application {
         VBox blackArea = new VBox(10, energyStatsRow, powerupBtn);
         blackArea.setStyle("-fx-background-color: rgba(0,0,0,0.4); -fx-background-radius: 15px; -fx-padding: 10;");
 
-        // Main Panel Wrapper
+        // RESTORED: Background panel is now exactly where it used to be
         ImageView panelBg = new ImageView(new Image("titlescreenbuttonbackground.png"));
         panelBg.setPreserveRatio(false);
-        panelBg.fitWidthProperty().bind(stage.widthProperty().multiply(0.32));
-        panelBg.fitHeightProperty().bind(stage.heightProperty().multiply(0.25)); 
+        panelBg.fitWidthProperty().bind(root.widthProperty().multiply(0.32));
+        panelBg.fitHeightProperty().bind(root.heightProperty().multiply(0.25)); 
         panelBg.setOpacity(0.4);
 
         VBox content = new VBox(8, nameRow, typeContainer, blackArea);
         content.setAlignment(Pos.TOP_LEFT);
-        content.paddingProperty().bind(stage.widthProperty().asObject().map(w -> new Insets(10, 10, 10, 10)));
+        // FIX: Only the content (orange text, image, etc.) is pushed down into the black shaded area using dynamic top padding.
+        content.paddingProperty().bind(root.heightProperty().asObject().map(h -> new Insets(h.doubleValue() * 0.03, 10, 10, 15)));
 
+        // StackPane holds the background at the Top Left natively, but the content inside gets pushed down.
         StackPane panelStack = new StackPane(panelBg, content);
         panelStack.setAlignment(Pos.TOP_LEFT);
 
@@ -895,19 +1012,19 @@ public class Game extends Application {
         btn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: 'Impact'; -fx-cursor: hand; -fx-background-radius: 8px;");
         btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: 'Impact'; -fx-cursor: hand; -fx-background-radius: 8px;"));
         btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-family: 'Impact'; -fx-cursor: hand; -fx-background-radius: 8px;"));
-        btn.setMaxWidth(Double.MAX_VALUE); // Let it fill the black box width
+        btn.setMaxWidth(Double.MAX_VALUE); 
         return btn;
     }
 
-    private StackPane createImageButton(String brushstrokePath, String labelImagePath, Stage stage, double widthRatio, double heightRatio, double width_enhancer) {
+    private StackPane createImageButton(String brushstrokePath, String labelImagePath, Pane root, double widthRatio, double heightRatio, double width_enhancer) {
         ImageView brush = new ImageView(new Image(brushstrokePath)); 
         brush.setPreserveRatio(false);
-        brush.fitWidthProperty().bind(stage.widthProperty().multiply(widthRatio));
-        brush.fitHeightProperty().bind(stage.heightProperty().multiply(heightRatio));
+        brush.fitWidthProperty().bind(root.widthProperty().multiply(widthRatio));
+        brush.fitHeightProperty().bind(root.heightProperty().multiply(heightRatio));
 
         ImageView label = new ImageView(new Image(labelImagePath));
         label.setPreserveRatio(true);
-        label.fitWidthProperty().bind(stage.widthProperty().multiply(widthRatio * width_enhancer));
+        label.fitWidthProperty().bind(root.widthProperty().multiply(widthRatio * width_enhancer));
 
         StackPane btn = new StackPane(brush, label);
         btn.setStyle("-fx-cursor: hand;");
