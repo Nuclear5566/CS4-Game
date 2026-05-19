@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -22,6 +24,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.effect.DropShadow;
@@ -34,6 +37,7 @@ import javafx.animation.ParallelTransition;
 import javafx.animation.RotateTransition;
 import javafx.animation.TranslateTransition;
 import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
 import javafx.animation.SequentialTransition;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
@@ -47,8 +51,6 @@ import game.engine.Role;
 import game.engine.cards.Card;
 import game.engine.cells.Cell;
 import game.engine.cells.DoorCell;
-import game.engine.cells.ConveyorBelt;
-import game.engine.cells.ContaminationSock;
 import game.engine.exceptions.InvalidMoveException;
 import game.engine.monsters.*;
 
@@ -56,6 +58,7 @@ public class Main extends Application {
 
     // ─── GUI VARIABLES ────────────────────────────────────────────────────────
     private MediaPlayer mediaPlayer;
+    private String currentAudioFile = ""; 
     private Game activeGame;
 
     // ─── DEBUG LOGGER ─────────────────────────────────────────────────────────
@@ -203,23 +206,23 @@ public class Main extends Application {
         title.setAlignment(Pos.CENTER);
 
         Label instructions = new Label(
-        		"OBJECTIVE\n" +
-        				"Reach Boo's Door (Cell 100/99) first with 1000+ energy.\n\n" +
+                "OBJECTIVE\n" +
+                        "Reach Boo's Door (Cell 100/99) first with 1000+ energy.\n\n" +
 
-        				"TURN SEQUENCE\n" +
-        				"1. Optional Powerup — Pay 500 energy to activate.\n" +
-        				"2. Dice Roll — Roll a 6-sided dice.\n" +
-        				"3. Movement — Move forward. Re-roll if destination is occupied.\n\n" +
+                        "TURN SEQUENCE\n" +
+                        "1. Optional Powerup — Pay 500 energy to activate.\n" +
+                        "2. Dice Roll — Roll a 6-sided dice.\n" +
+                        "3. Movement — Move forward. Re-roll if destination is occupied.\n\n" +
 
-        				"CELL TYPES\n" +
-        				"• Door Cells — Matching role gains energy; mismatch loses it.\n" +
-        				"• Monster Cells — Same role gives a free powerup; opposite swaps energy.\n" +
-        				"• Conveyor Belts / Socks — Move you forward, or send you back and drain 100 energy.\n" +
-        				"• Card Cells — Draw and resolve an action card.\n" +
-        				"• Normal Cells — No effect.\n\n" +
+                        "CELL TYPES\n" +
+                        "• Door Cells — Matching role gains energy; mismatch loses it.\n" +
+                        "• Monster Cells — Same role gives a free powerup; opposite swaps energy.\n" +
+                        "• Conveyor Belts / Socks — Move you forward, or send you back and drain 100 energy.\n" +
+                        "• Card Cells — Draw and resolve an action card.\n" +
+                        "• Normal Cells — No effect.\n\n" +
 
-        				"WIN CONDITION\n" +
-        				"Have 1000+ energy at the final cell. Press F to play"
+                        "WIN CONDITION\n" +
+                        "Have 1000+ energy at the final cell. Press F to play"
         );
         instructions.setStyle(
             "-fx-font-size: 20px;" +
@@ -244,6 +247,8 @@ public class Main extends Application {
             if (e.getCode() == KeyCode.F)
                 stage.setScene(createRoleSelectionScene(stage));
         });
+        
+        // Starts the loop for the rest of the game
         playAudio("pizzaParlor.mp3"); 
         return scene;
     }
@@ -312,6 +317,9 @@ public class Main extends Application {
             if (e.getCode() == KeyCode.ESCAPE)
                 stage.setScene(createTitleScene(stage));
         });
+        
+        // Ensure pizza parlor plays (if coming from Win screen "Play Again" it switches, if coming from instructions it seamlessly continues)
+        playAudio("pizzaParlor.mp3");
         return scene;
     }
 
@@ -362,8 +370,65 @@ public class Main extends Application {
         return scene;
     }
 
+    // ─── POST-GAME ROLLING CREDITS SCENE ──────────────────────────────────────
+    private Scene createPostGameCreditsScene(Stage stage, Scene winScene) {
+        StackPane root = new StackPane();
+        Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
+        
+        Rectangle background = new Rectangle();
+        background.setFill(Color.BLACK);
+        background.widthProperty().bind(root.widthProperty());
+        background.heightProperty().bind(root.heightProperty());
+        
+        // Define components
+        Label title = new Label("GAME MADE BY TEAM 188");
+        title.setStyle("-fx-font-size: 52px; -fx-font-weight: bold; -fx-text-fill: #ff6b35; -fx-font-family: 'Impact';");
+        
+        VBox memberList = new VBox(30);
+        memberList.setAlignment(Pos.CENTER);
+        String[] members = { "Youssef Ashraf Saber", "Amr Mohamed Mossad Kandeel", "Omar Osama Ahmed Rady", "Abdulrahman Emad Eldin Adel Soliman Yousry" };
+        for (String member : members) {
+            Label memberLabel = new Label(member);
+            memberLabel.setStyle("-fx-font-size: 36px; -fx-text-fill: white; -fx-font-family: 'Georgia';");
+            memberList.getChildren().add(memberLabel);
+        }
+
+        Label hint = new Label("Press ESC to skip to Win Screen");
+        hint.setStyle("-fx-font-size: 20px; -fx-text-fill: #aaaaaa; -fx-font-family: 'Georgia';");
+
+        VBox content = new VBox(60, title, memberList, hint);
+        content.setAlignment(Pos.CENTER);
+        
+        root.getChildren().addAll(background, content);
+
+        // 1. Setup the movement
+        TranslateTransition scroll = new TranslateTransition(Duration.seconds(25), content);
+        scroll.setInterpolator(Interpolator.LINEAR);
+        scroll.setFromY(stage.getHeight());
+        scroll.setToY(-1000); // Adjust this if your list is cut off
+        scroll.setOnFinished(e -> stage.setScene(winScene));
+
+        // 2. Setup the skip logic
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ESCAPE) {
+                scroll.stop();
+                stage.setScene(winScene);
+            }
+        });
+
+        // 3. Start animation after a minimal delay to ensure layout is ready
+        PauseTransition startDelay = new PauseTransition(Duration.millis(500));
+        startDelay.setOnFinished(e -> {
+            content.setVisible(true);
+            scroll.play();
+        });
+        startDelay.play();
+
+        return scene;
+    }
+
     // ─── WIN SCENE ────────────────────────────────────────────────────────────
-    private Scene createWinScene(Stage stage, Monster winner, Monster loser) {
+    private Scene createWinScene(Stage stage, Monster winner, Monster loser, boolean creditsRolled) {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
 
@@ -371,128 +436,161 @@ public class Main extends Application {
         background.setPreserveRatio(false);
         background.fitWidthProperty().bind(root.widthProperty());
         background.fitHeightProperty().bind(root.heightProperty());
-        GaussianBlur bgBlur = new GaussianBlur(8);
-        background.setEffect(bgBlur);
-
-        Rectangle darkOverlay = new Rectangle();
-        darkOverlay.setFill(Color.BLACK);
-        darkOverlay.setOpacity(0.55);
-        darkOverlay.widthProperty().bind(root.widthProperty());
-        darkOverlay.heightProperty().bind(root.heightProperty());
 
         String winnerRoleStr = winner.getRole() == Role.SCARER ? "SCARER" : "LAUGHER";
         String loserRoleStr  = loser.getRole()  == Role.SCARER ? "SCARER" : "LAUGHER";
 
-        ImageView winnerImg = new ImageView(new Image(getMonsterImageByName(winner.getName())));
-        winnerImg.setPreserveRatio(true);
-        winnerImg.setFitWidth(120);
-        winnerImg.setFitHeight(120);
+        DropShadow textShadow = new DropShadow();
+        textShadow.setColor(Color.BLACK);
+        textShadow.setRadius(4);
+        textShadow.setSpread(0.6);
 
+        // --- WINNER PANEL (Text + Custom Win Image) ---
         Label winnerHeader = new Label("Winner:");
-        winnerHeader.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 52px; -fx-font-weight: bold; -fx-text-fill: #FFD700;");
+        winnerHeader.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 56px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerHeader.setEffect(textShadow);
 
         Label winnerName   = new Label(winner.getName());
-        winnerName.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 34px; -fx-text-fill: white;");
+        winnerName.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerName.setEffect(textShadow);
 
-        Label winnerRole   = new Label("Role: " + winnerRoleStr);
-        winnerRole.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 26px; -fx-text-fill: #aaffaa;");
+        Label winnerRole   = new Label(winnerRoleStr);
+        winnerRole.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerRole.setEffect(textShadow);
 
         Label winnerEnergy = new Label("Final Energy: " + winner.getEnergy());
-        winnerEnergy.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 26px; -fx-text-fill: #00ff88;");
+        winnerEnergy.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerEnergy.setEffect(textShadow);
 
-        VBox winnerText = new VBox(4, winnerHeader, winnerName, winnerRole, winnerEnergy);
+        VBox winnerText = new VBox(2, winnerHeader, winnerName, winnerRole, winnerEnergy);
         winnerText.setAlignment(Pos.CENTER_LEFT);
 
-        HBox winnerBlock = new HBox(18, winnerImg, winnerText);
-        winnerBlock.setAlignment(Pos.CENTER_LEFT);
+        // Load the custom win image (no programmatic crown needed!)
+        ImageView winnerImg = new ImageView(new Image(getWinningMonsterImageByName(winner.getName())));
+        winnerImg.setPreserveRatio(true);
+        winnerImg.fitHeightProperty().bind(root.heightProperty().multiply(0.40)); 
+        
+        // Put the text and the single image side-by-side
+        HBox winnerBox = new HBox(60, winnerText, winnerImg);
+        winnerBox.setAlignment(Pos.CENTER_LEFT);
 
-        ImageView loserImg = new ImageView(new Image(getMonsterImageByName(loser.getName())));
-        loserImg.setPreserveRatio(true);
-        loserImg.setFitWidth(100);
-        loserImg.setFitHeight(100);
-        loserImg.setOpacity(0.7);
 
+        // --- LOSER PANEL (Text + Normal Image) ---
         Label loserHeader = new Label("Loser:");
-        loserHeader.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 44px; -fx-font-weight: bold; -fx-text-fill: #ff6b35;");
+        loserHeader.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 56px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserHeader.setEffect(textShadow);
 
         Label loserName   = new Label(loser.getName());
-        loserName.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 30px; -fx-text-fill: #cccccc;");
+        loserName.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserName.setEffect(textShadow);
 
-        Label loserRole   = new Label("Role: " + loserRoleStr);
-        loserRole.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 22px; -fx-text-fill: #aaaaaa;");
+        Label loserRole   = new Label(loserRoleStr);
+        loserRole.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserRole.setEffect(textShadow);
 
         Label loserEnergy = new Label("Final Energy: " + loser.getEnergy());
-        loserEnergy.setStyle("-fx-font-family: 'Impact'; -fx-font-size: 22px; -fx-text-fill: #ff8888;");
+        loserEnergy.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserEnergy.setEffect(textShadow);
 
-        VBox loserText = new VBox(4, loserHeader, loserName, loserRole, loserEnergy);
+        VBox loserText = new VBox(2, loserHeader, loserName, loserRole, loserEnergy);
         loserText.setAlignment(Pos.CENTER_LEFT);
 
-        HBox loserBlock = new HBox(18, loserImg, loserText);
-        loserBlock.setAlignment(Pos.CENTER_LEFT);
+        // USING THE NORMAL IMAGES FOR THE LOSER HERE
+        ImageView loserImg = new ImageView(new Image(getMonsterImageByName(loser.getName())));
+        loserImg.setPreserveRatio(true);
+        loserImg.fitHeightProperty().bind(root.heightProperty().multiply(0.30)); 
+        loserImg.setOpacity(0.85); // Faded
 
-        VBox infoPanel = new VBox(30, winnerBlock, loserBlock);
-        infoPanel.setAlignment(Pos.TOP_LEFT);
-        infoPanel.setPadding(new Insets(60, 0, 0, 60));
-        infoPanel.setStyle(
-            "-fx-background-color: rgba(0,0,0,0.45);" +
-            "-fx-background-radius: 20px;" +
-            "-fx-padding: 30px 40px 30px 40px;"
-        );
-        infoPanel.setMaxWidth(500);
-        infoPanel.setMaxHeight(340);
+        HBox loserBox = new HBox(60, loserText, loserImg);
+        loserBox.setAlignment(Pos.CENTER_LEFT);
 
-        DropShadow panelShadow = new DropShadow();
-        panelShadow.setRadius(30); panelShadow.setColor(Color.BLACK);
-        infoPanel.setEffect(panelShadow);
 
-        StackPane.setAlignment(infoPanel, Pos.TOP_LEFT);
-        StackPane.setMargin(infoPanel, new Insets(40, 0, 0, 40));
+        // --- COMBINE BOTH PANELS ---
+        VBox statsPanel = new VBox(15, winnerBox, loserBox); 
+        
+        // Pinned to Top Left to stop it from clashing with the bottom text
+        statsPanel.setAlignment(Pos.TOP_LEFT);
+        StackPane.setAlignment(statsPanel, Pos.TOP_LEFT);
+        
+        // Insets: (Top 50, Right 0, Bottom 0, Left 100)
+        StackPane.setMargin(statsPanel, new Insets(50, 0, 0, 100)); 
 
+
+        Font.loadFont(new File("IrishGrover-Regular.ttf").toURI().toString(), 10);
         String teamName = winner.getRole() == Role.SCARER ? "SCARERS" : "LAUGHERS";
         Label bigWinLabel = new Label(teamName + " WIN");
         bigWinLabel.styleProperty().bind(Bindings.concat(
-            "-fx-font-family: 'Impact';" +
+            "-fx-font-family: 'Irish Grover';" +
             "-fx-font-size: ",
-            root.widthProperty().multiply(0.085).asString("%.0f"),
+            root.widthProperty().multiply(0.11).asString("%.0f"),
             "px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: black;"
         ));
+        
         DropShadow winTextShadow = new DropShadow();
-        winTextShadow.setColor(Color.WHITE); winTextShadow.setRadius(6); winTextShadow.setSpread(0.4);
+        winTextShadow.setColor(Color.WHITE); 
+        winTextShadow.setRadius(3); 
+        winTextShadow.setSpread(1.0); 
         bigWinLabel.setEffect(winTextShadow);
 
         StackPane.setAlignment(bigWinLabel, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(bigWinLabel, new Insets(0, 0, 120, 0));
+        StackPane.setMargin(bigWinLabel, new Insets(0, 0, 10, 0));
 
+
+        // --- BUTTONS (MOVED TO TOP RIGHT) ---
         Button playAgainBtn = new Button("PLAY AGAIN");
-        playAgainBtn.setStyle("-fx-background-color: #ff6b35; -fx-text-fill: white; -fx-font-size: 22px; -fx-font-family: 'Impact'; -fx-padding: 12 28; -fx-background-radius: 10; -fx-cursor: hand;");
-        playAgainBtn.setOnMouseEntered(e -> playAgainBtn.setStyle("-fx-background-color: #e05520; -fx-text-fill: white; -fx-font-size: 22px; -fx-font-family: 'Impact'; -fx-padding: 12 28; -fx-background-radius: 10; -fx-cursor: hand;"));
-        playAgainBtn.setOnMouseExited(e -> playAgainBtn.setStyle("-fx-background-color: #ff6b35; -fx-text-fill: white; -fx-font-size: 22px; -fx-font-family: 'Impact'; -fx-padding: 12 28; -fx-background-radius: 10; -fx-cursor: hand;"));
-        playAgainBtn.setOnAction(e -> stage.setScene(createRoleSelectionScene(stage)));
+        playAgainBtn.setStyle("-fx-background-color: #ff6b35; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-family: 'Impact'; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;");
+        playAgainBtn.setOnMouseEntered(e -> playAgainBtn.setStyle("-fx-background-color: #e05520; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-family: 'Impact'; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"));
+        playAgainBtn.setOnMouseExited(e -> playAgainBtn.setStyle("-fx-background-color: #ff6b35; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-family: 'Impact'; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"));
 
         Button menuBtn = new Button("MAIN MENU");
-        menuBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 22px; -fx-font-family: 'Impact'; -fx-padding: 12 28; -fx-background-radius: 10; -fx-cursor: hand;");
-        menuBtn.setOnMouseEntered(e -> menuBtn.setStyle("-fx-background-color: #2170a0; -fx-text-fill: white; -fx-font-size: 22px; -fx-font-family: 'Impact'; -fx-padding: 12 28; -fx-background-radius: 10; -fx-cursor: hand;"));
-        menuBtn.setOnMouseExited(e -> menuBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 22px; -fx-font-family: 'Impact'; -fx-padding: 12 28; -fx-background-radius: 10; -fx-cursor: hand;"));
-        menuBtn.setOnAction(e -> stage.setScene(createTitleScene(stage)));
+        menuBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-family: 'Impact'; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;");
+        menuBtn.setOnMouseEntered(e -> menuBtn.setStyle("-fx-background-color: #2170a0; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-family: 'Impact'; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"));
+        menuBtn.setOnMouseExited(e -> menuBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-family: 'Impact'; -fx-padding: 10 20; -fx-background-radius: 8; -fx-cursor: hand;"));
 
         HBox buttonRow = new HBox(20, playAgainBtn, menuBtn);
         buttonRow.setAlignment(Pos.CENTER);
-        StackPane.setAlignment(buttonRow, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(buttonRow, new Insets(0, 0, 40, 0));
+        
+        // This stops the box from stretching across the entire screen
+        buttonRow.setMaxWidth(HBox.USE_PREF_SIZE);
+        buttonRow.setMaxHeight(HBox.USE_PREF_SIZE);
+        
+        // Position to top right
+        StackPane.setAlignment(buttonRow, Pos.TOP_RIGHT);
+        StackPane.setMargin(buttonRow, new Insets(40, 40, 0, 0)); 
 
+        // Credits delay logic - Increased from 4.5 to 8 seconds!
+        PauseTransition creditsDelay = new PauseTransition(Duration.seconds(8));
+        if (!creditsRolled) {
+            creditsDelay.setOnFinished(e -> stage.setScene(createPostGameCreditsScene(stage, scene)));
+            creditsDelay.play();
+        }
+
+        playAgainBtn.setOnAction(e -> {
+            if (!creditsRolled) creditsDelay.stop();
+            stage.setScene(createRoleSelectionScene(stage));
+        });
+
+        menuBtn.setOnAction(e -> {
+            if (!creditsRolled) creditsDelay.stop();
+            stage.setScene(createTitleScene(stage));
+        });
+
+        // Intro animation for big text
         bigWinLabel.setOpacity(0);
-        bigWinLabel.setTranslateY(60);
+        bigWinLabel.setScaleX(0.8);
+        bigWinLabel.setScaleY(0.8);
         FadeTransition ftWin = new FadeTransition(Duration.seconds(1.2), bigWinLabel);
         ftWin.setFromValue(0); ftWin.setToValue(1);
-        TranslateTransition ttWin = new TranslateTransition(Duration.seconds(1.2), bigWinLabel);
-        ttWin.setFromY(60); ttWin.setToY(0);
-        new ParallelTransition(ftWin, ttWin).play();
+        ScaleTransition stWin = new ScaleTransition(Duration.seconds(1.2), bigWinLabel);
+        stWin.setToX(1); stWin.setToY(1);
+        new ParallelTransition(ftWin, stWin).play();
 
-        root.getChildren().addAll(background, darkOverlay, infoPanel, bigWinLabel, buttonRow);
+        // Updated root assembly
+        root.getChildren().addAll(background, statsPanel, bigWinLabel, buttonRow);
 
-        playAudio("MonstersTheme.mp3");
+        playAudio("Win.mp3");
         return scene;
     }
 
@@ -534,6 +632,7 @@ public class Main extends Application {
         final Role p2OrigRole = activeGame.getOpponent().getRole();
 
         // State trackers for enforcing game logic rules
+        final boolean[] isAnimating = {true}; // Initially true to block early moves
         final boolean[] mustDrawCard = {false};
         final boolean[] isRolling = {false};
         final Card[] pendingVisualCard = {null};
@@ -737,12 +836,16 @@ public class Main extends Application {
             if (winner != null && !isEffectDelayed[0]) {
                 Monster loser = (winner == activeGame.getPlayer()) ? activeGame.getOpponent() : activeGame.getPlayer();
                 PauseTransition delay = new PauseTransition(Duration.seconds(2.5));
-                delay.setOnFinished(ev2 -> stage.setScene(createWinScene(stage, winner, loser)));
+                delay.setOnFinished(ev2 -> {
+                    // Start Win Scene, pass 'false' to indicate credits haven't rolled yet
+                    stage.setScene(createWinScene(stage, winner, loser, false));
+                });
                 delay.play();
             }
         };
         
         p1PowerupBtn.setOnAction(e -> {
+            if (isAnimating[0]) return;
             if (activeGame.getCurrent() != activeGame.getPlayer()) {
                 showInvalidActionPopup("Not Your Turn", "You cannot use your powerup during your opponent's turn.");
             } else if (activeGame.getPlayer().getEnergy() < Constants.POWERUP_COST) {
@@ -760,6 +863,7 @@ public class Main extends Application {
         });
         
         p2PowerupBtn.setOnAction(e -> {
+            if (isAnimating[0]) return;
             if (activeGame.getCurrent() != activeGame.getOpponent()) {
                 showInvalidActionPopup("Not Your Turn", "You cannot use your powerup during your opponent's turn.");
             } else if (activeGame.getOpponent().getEnergy() < Constants.POWERUP_COST) {
@@ -784,7 +888,7 @@ public class Main extends Application {
         diceBox.setMaxSize(80, 80);
         diceBox.setStyle("-fx-background-color: white; -fx-background-radius: 12px; -fx-border-color: #cccccc; -fx-border-radius: 12px; -fx-border-width: 4px; -fx-cursor: hand;");
         diceBox.setOnMouseClicked(e -> {
-            if (isRolling[0] || activeGame.getWinner() != null) return;
+            if (isRolling[0] || isAnimating[0] || activeGame.getWinner() != null) return;
             if (mustDrawCard[0]) {
                 turnIndicator.setText("DRAW YOUR CARD FIRST!");
                 return;
@@ -845,6 +949,13 @@ public class Main extends Application {
                         distance /= (focusBefore > 0) ? 1 : 2;
                     }
                     int expectedLandPos = (oldPos + distance) % 100;
+
+                    /* * --- TATHEER MP3 LOGIC: SOCKS ---
+                     * This plays Tatheer.mp3 when a monster lands on a sock cell, which sends them back.
+                     */
+                    if (roll != 0 && containsIndex(Constants.SOCK_CELL_INDICES, expectedLandPos)) {
+                        playSoundEffect("Tatheer.mp3");
+                    }
                     
                     int cols = Constants.BOARD_COLS;
                     int r = expectedLandPos / cols;
@@ -852,7 +963,6 @@ public class Main extends Application {
                     if (r % 2 == 1) c = cols - 1 - c;
                     Cell landedCell = activeGame.getBoard().getBoardCells()[r][c];
                     
-                    int newPos = playingMonster.getPosition();
                     
                     if (landedCell instanceof DoorCell && roll != 0) {
                         DoorCell door = (DoorCell) landedCell;
@@ -898,6 +1008,11 @@ public class Main extends Application {
                     if (landedCell instanceof game.engine.cells.MonsterCell && roll != 0) {
                         game.engine.cells.MonsterCell mc = (game.engine.cells.MonsterCell) landedCell;
                         Monster cellMonster = mc.getCellMonster();
+                        
+                        if (cellMonster.getName().equalsIgnoreCase("Roz")) {
+                            playSoundEffect("Roz.mp3");
+                        }
+
                         int oldCellEnergy = previousEnergies.get(cellMonster);
                         int oldPosEnergy = isP1 ? oldP1Energy : oldP2Energy;
                         
@@ -944,7 +1059,10 @@ public class Main extends Application {
                         }
                     }
 
-                    boolean cardWasDrawn = isCardCell(expectedLandPos);
+                    // --- CARD DRAW LOGIC FIX START ---
+                    // Check their ACTUAL position after the engine resolves all socks/belts
+                    int finalLandPos = playingMonster.getPosition();
+                    boolean cardWasDrawn = isCardCell(finalLandPos);
                     Board.setCards(originalDeck);
                     
                     if (cardWasDrawn && roll != 0) {
@@ -953,14 +1071,15 @@ public class Main extends Application {
                         pendingVisualCard[0] = expectedCard;
                         
                         isEffectDelayed[0] = true;
-                        delayedP1Pos[0] = isP1 ? expectedLandPos : oldP1Pos;
-                        delayedP2Pos[0] = !isP1 ? expectedLandPos : oldP2Pos;
+                        delayedP1Pos[0] = isP1 ? finalLandPos : oldP1Pos;
+                        delayedP2Pos[0] = !isP1 ? finalLandPos : oldP2Pos;
                         delayedP1Energy[0] = oldP1Energy;
                         delayedP2Energy[0] = oldP2Energy;
                         delayedCurrentTurn[0] = playingMonster;
                     } else {
                         isEffectDelayed[0] = false;
                     }
+                    // --- CARD DRAW LOGIC FIX END ---
 
                     diceLabel.setText(roll == 0 ? "X" : String.valueOf(roll));
                     updateUI.run();
@@ -1025,13 +1144,21 @@ public class Main extends Application {
         });
 
         cardBack.setOnMouseClicked(e -> {
-            if (!mustDrawCard[0]) return; 
+            if (!mustDrawCard[0] || isAnimating[0]) return; 
             mustDrawCard[0] = false; 
             
             try {
                 Card drawnCard = pendingVisualCard[0];
                 if (drawnCard == null) return;
                 
+                /* * --- TATHEER MP3 LOGIC: CARDS ---
+                 * This plays Tatheer.mp3 when the code specifically draws the card (e.g. "Contamination")
+                 * which sends any monster back according to game logic.
+                 */
+                if (drawnCard.getName().toLowerCase().contains("contamination")) {
+                    playSoundEffect("Tatheer.mp3");
+                }
+
                 String imageFileName = drawnCard.getName().replace(" ", "") + ".png";
                 Image realCardImage = new Image("Cards/" + imageFileName);
                 
@@ -1247,6 +1374,7 @@ public class Main extends Application {
         background.fitHeightProperty().bind(root.heightProperty());
         
         scene.setOnKeyPressed(ev -> {
+            if (isAnimating[0]) return; // Block keys during animation
             if (ev.getCode() == KeyCode.ESCAPE) stage.setScene(createRoleSelectionScene(stage));
             
             if (ev.getCode() == KeyCode.W && activeGame.getWinner() == null) {
@@ -1267,6 +1395,9 @@ public class Main extends Application {
             }
         });
         
+        // Play the intro shuffle animation
+        playDeckShuffleAnimation(root, cardBack, isAnimating);
+
         return scene;
     }
 
@@ -1481,6 +1612,7 @@ public class Main extends Application {
         return btn;
     }
     
+    // THE ORIGINAL HELPER FOR LOSERS / GAME BOARD
     private String getMonsterImageByName(String name) {
         switch (name) {
             case "James P. Sullivan": return "Monsters/char_sulley.png";
@@ -1492,6 +1624,21 @@ public class Main extends Application {
             case "Henry J. Waternoose": return "Monsters/char_waternoose.png";
             case "Yeti":              return "Monsters/char_yeti.png";
             default:                  return "Monsters/char_sulley.png";
+        }
+    }
+
+    // THE NEW HELPER FOR WINNERS
+    private String getWinningMonsterImageByName(String name) {
+        switch (name) {
+            case "James P. Sullivan": return "Monsters/char_sulley_win.png";
+            case "Mike Wazowski":     return "Monsters/char_mike_win.png";
+            case "Randall Boggs":     return "Monsters/char_randall_win.png";
+            case "Celia Mae":         return "Monsters/char_celia_win.png";
+            case "Roz":               return "Monsters/char_roz_win.png";
+            case "Fungus":            return "Monsters/char_fungus_win.png";
+            case "Henry J. Waternoose": return "Monsters/char_waternoose_win.png";
+            case "Yeti":              return "Monsters/char_yeti_win.png";
+            default:                  return "Monsters/char_sulley_win.png";
         }
     }
     
@@ -1519,6 +1666,8 @@ public class Main extends Application {
     }
     
     private void playAudio(String filename) {
+        if (currentAudioFile.equals(filename) && mediaPlayer != null) return;
+        
         if (mediaPlayer != null) { 
             mediaPlayer.stop();
             mediaPlayer.dispose(); 
@@ -1528,9 +1677,174 @@ public class Main extends Application {
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setAutoPlay(true);
             mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            currentAudioFile = filename;
         } catch (Exception e) {
             System.out.println("Audio not found: " + filename);
         }
+    }
+
+    private void playSoundEffect(String filename) {
+        try {
+            if (mediaPlayer != null) {
+                mediaPlayer.pause();
+            }
+            
+            Media media = new Media(new File(filename).toURI().toString());
+            MediaPlayer sfxPlayer = new MediaPlayer(media);
+            sfxPlayer.play();
+            
+            sfxPlayer.setOnEndOfMedia(() -> {
+                sfxPlayer.dispose();
+                if (mediaPlayer != null) {
+                    mediaPlayer.play();
+                }
+            });
+        } catch (Exception e) {
+            System.out.println("SFX not found: " + filename);
+            if (mediaPlayer != null) {
+                mediaPlayer.play();
+            }
+        }
+    }
+
+    private void playDeckShuffleAnimation(StackPane root, ImageView deckNode, boolean[] isAnimating) {
+        // Darken the background slightly
+        Rectangle overlay = new Rectangle();
+        overlay.widthProperty().bind(root.widthProperty());
+        overlay.heightProperty().bind(root.heightProperty());
+        overlay.setFill(Color.rgb(0, 0, 0, 0.8));
+
+        // Separate pane for the cards to freely animate over everything else
+        Pane animLayer = new Pane();
+        root.getChildren().addAll(overlay, animLayer);
+
+        ArrayList<Card> deckCards = Board.getCards();
+        int numCards = Math.min(25, deckCards.size());
+        ImageView[] visualCards = new ImageView[numCards];
+        Image backImage = new Image("Cards/CardBack.png");
+
+        // Use runLater to ensure layout bounds are calculated before animating
+        Platform.runLater(() -> {
+            double centerX = root.getWidth() / 2;
+            double centerY = root.getHeight() / 2;
+
+            // Find exactly where the static deck sits on the screen
+            Bounds deckBounds = deckNode.localToScene(deckNode.getBoundsInLocal());
+            Point2D targetLocal = animLayer.sceneToLocal(deckBounds.getMinX(), deckBounds.getMinY());
+            double deckX = targetLocal.getX();
+            double deckY = targetLocal.getY();
+
+            ParallelTransition showGrid = new ParallelTransition();
+            ParallelTransition flipCards = new ParallelTransition();
+            SequentialTransition shuffleAnim = new SequentialTransition();
+            ParallelTransition stackAnim = new ParallelTransition();
+
+            double cardW = 100;
+            double cardH = 140;
+
+            for (int i = 0; i < numCards; i++) {
+                Card c = deckCards.get(i);
+                String imgName = "Cards/" + c.getName().replace(" ", "") + ".png";
+                Image faceImage = new Image(imgName);
+
+                ImageView cardView = new ImageView(faceImage);
+                cardView.setFitWidth(cardW);
+                cardView.setFitHeight(cardH);
+                
+                // Spawn in the exact center of the screen at size 0
+                cardView.setX(centerX - (cardW / 2));
+                cardView.setY(centerY - (cardH / 2));
+                cardView.setScaleX(0);
+                cardView.setScaleY(0);
+
+                animLayer.getChildren().add(cardView);
+                visualCards[i] = cardView;
+
+                // 1. Grid Formation (5x5 Spread)
+                int row = i / 5;
+                int col = i % 5;
+                double targetX = centerX - 260 + (col * 130);
+                double targetY = centerY - 350 + (row * 150);
+
+                TranslateTransition ttOut = new TranslateTransition(Duration.millis(700), cardView);
+                ttOut.setToX(targetX - cardView.getX());
+                ttOut.setToY(targetY - cardView.getY());
+
+                ScaleTransition stOut = new ScaleTransition(Duration.millis(700), cardView);
+                stOut.setToX(1.0);
+                stOut.setToY(1.0);
+
+                RotateTransition rtOut = new RotateTransition(Duration.millis(700), cardView);
+                rtOut.setFromAngle(-180);
+                rtOut.setToAngle(0);
+
+                showGrid.getChildren().addAll(ttOut, stOut, rtOut);
+
+                // 2. Flip from Face to Back
+                ScaleTransition flipHide = new ScaleTransition(Duration.millis(200), cardView);
+                flipHide.setToX(0);
+                flipHide.setOnFinished(ev -> cardView.setImage(backImage));
+
+                ScaleTransition flipShow = new ScaleTransition(Duration.millis(200), cardView);
+                flipShow.setToX(1);
+
+                flipCards.getChildren().add(new SequentialTransition(flipHide, flipShow));
+
+                // 4. Return to the Deck Stack
+                TranslateTransition ttStack = new TranslateTransition(Duration.seconds(1), cardView);
+                ttStack.setToX(deckX - cardView.getX());
+                ttStack.setToY(deckY - cardView.getY());
+
+                RotateTransition rtStack = new RotateTransition(Duration.seconds(1), cardView);
+                rtStack.setToAngle(0);
+
+                ScaleTransition stStack = new ScaleTransition(Duration.seconds(1), cardView);
+                stStack.setToX(deckBounds.getWidth() / cardW);
+                stStack.setToY(deckBounds.getHeight() / cardH);
+
+                stackAnim.getChildren().addAll(ttStack, rtStack, stStack);
+            }
+
+            // 3. Shuffling Swirl Effect
+            for (int step = 0; step < 6; step++) {
+                ParallelTransition mixStep = new ParallelTransition();
+                for (int i = 0; i < numCards; i++) {
+                    TranslateTransition ttMix = new TranslateTransition(Duration.millis(180), visualCards[i]);
+                    ttMix.setToX((centerX - 150 + Math.random() * 300) - visualCards[i].getX());
+                    ttMix.setToY((centerY - 150 + Math.random() * 300) - visualCards[i].getY());
+
+                    RotateTransition rtMix = new RotateTransition(Duration.millis(180), visualCards[i]);
+                    rtMix.setToAngle(-90 + Math.random() * 180);
+
+                    mixStep.getChildren().addAll(ttMix, rtMix);
+                }
+                shuffleAnim.getChildren().add(mixStep);
+            }
+
+            // Compile the Master Sequence
+            SequentialTransition masterAnim = new SequentialTransition(
+                showGrid,
+                new PauseTransition(Duration.seconds(2.5)), // Allow 2.5 seconds to read the cards
+                flipCards,
+                new PauseTransition(Duration.millis(300)),
+                shuffleAnim,
+                new PauseTransition(Duration.millis(300)),
+                stackAnim
+            );
+
+            // Cleanup layer and unlock game
+            masterAnim.setOnFinished(ev -> {
+                FadeTransition ftOut = new FadeTransition(Duration.millis(400), overlay);
+                ftOut.setToValue(0);
+                ftOut.setOnFinished(e -> {
+                    root.getChildren().removeAll(overlay, animLayer);
+                    isAnimating[0] = false; 
+                });
+                ftOut.play();
+            });
+
+            masterAnim.play();
+        });
     }
     
     public static void main(String[] args) {
