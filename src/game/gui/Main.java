@@ -58,6 +58,7 @@ public class Main extends Application {
 
     // ─── GUI VARIABLES ────────────────────────────────────────────────────────
     private MediaPlayer mediaPlayer;
+    private MediaPlayer sfxPlayer; 
     private String currentAudioFile = ""; 
     private Game activeGame;
 
@@ -399,30 +400,49 @@ public class Main extends Application {
         VBox content = new VBox(60, title, memberList, hint);
         content.setAlignment(Pos.CENTER);
         
+        // 1. Immediately hide it to prevent the split-second center flash
+        content.setOpacity(0);
+        
         root.getChildren().addAll(background, content);
 
-        // 1. Setup the movement
-        TranslateTransition scroll = new TranslateTransition(Duration.seconds(25), content);
-        scroll.setInterpolator(Interpolator.LINEAR);
-        scroll.setFromY(stage.getHeight());
-        scroll.setToY(-1000); // Adjust this if your list is cut off
-        scroll.setOnFinished(e -> stage.setScene(winScene));
-
+        Timeline rollTimeline = new Timeline();
+        rollTimeline.setCycleCount(1);
+        
         // 2. Setup the skip logic
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ESCAPE) {
-                scroll.stop();
+                rollTimeline.stop();
                 stage.setScene(winScene);
             }
         });
 
-        // 3. Start animation after a minimal delay to ensure layout is ready
-        PauseTransition startDelay = new PauseTransition(Duration.millis(500));
-        startDelay.setOnFinished(e -> {
-            content.setVisible(true);
-            scroll.play();
+        // 3. Wait for JavaFX to calculate exact heights, then start rolling
+        Platform.runLater(() -> {
+            // Start perfectly at the bottom edge of the window
+            double startY = scene.getHeight(); 
+            // End exactly when the bottom of the text clears the top of the window
+            double endY = -content.getHeight() - 150; 
+            
+            // Snap it off-screen and make it visible
+            content.setTranslateY(startY);
+            content.setOpacity(1); 
+            
+            // Create a perfectly calculated smooth roll
+            KeyFrame startFrame = new KeyFrame(Duration.ZERO, 
+                new javafx.animation.KeyValue(content.translateYProperty(), startY, Interpolator.LINEAR)
+            );
+            KeyFrame endFrame = new KeyFrame(Duration.seconds(18), 
+                new javafx.animation.KeyValue(content.translateYProperty(), endY, Interpolator.LINEAR)
+            );
+            
+            rollTimeline.getKeyFrames().addAll(startFrame, endFrame);
+            rollTimeline.setOnFinished(e -> stage.setScene(winScene));
+            
+            // Slight delay before movement begins
+            PauseTransition delay = new PauseTransition(Duration.millis(300));
+            delay.setOnFinished(e -> rollTimeline.play());
+            delay.play();
         });
-        startDelay.play();
 
         return scene;
     }
@@ -665,16 +685,20 @@ public class Main extends Application {
         ds.setRadius(4.0); ds.setOffsetX(2.0); ds.setOffsetY(2.0);
         ds.setColor(Color.color(0, 0, 0, 0.6));
 
+        // Dynamically assign token colors based on Role (Scarer = Red, Laugher = Blue)
+        Color p1Color = p1OrigRole == Role.SCARER ? Color.web("#e74c3c") : Color.web("#3498db");
+        Color p2Color = p2OrigRole == Role.SCARER ? Color.web("#e74c3c") : Color.web("#3498db");
+
         Circle playerToken = new Circle();
         playerToken.radiusProperty().bind(root.heightProperty().multiply(0.010)); 
-        playerToken.setFill(Color.web("#3498db"));
+        playerToken.setFill(p1Color);
         playerToken.setStroke(Color.WHITE);
         playerToken.setStrokeWidth(2);
         playerToken.setEffect(ds);
         
         Circle opponentToken = new Circle();
         opponentToken.radiusProperty().bind(root.heightProperty().multiply(0.010));
-        opponentToken.setFill(Color.web("#e74c3c"));
+        opponentToken.setFill(p2Color);
         opponentToken.setStroke(Color.WHITE);
         opponentToken.setStrokeWidth(2);
         opponentToken.setEffect(ds);
@@ -707,8 +731,11 @@ public class Main extends Application {
         Button p1PowerupBtn = createPowerupButton();
         Button p2PowerupBtn = createPowerupButton();
         
-        StackPane player1Panel = createPlayerPanel(root, "PLAYER 1 (You)", activeGame.getPlayer(), p1EnergyLabel, p1EnergyDiff, p1PowerupBtn, p1RoleLabel, p1PosLabel, p1ShieldLabel, p1EffectLabel);
-        StackPane player2Panel = createPlayerPanel(root, "PLAYER 2 (Opponent)", activeGame.getOpponent(), p2EnergyLabel, p2EnergyDiff, p2PowerupBtn, p2RoleLabel, p2PosLabel, p2ShieldLabel, p2EffectLabel);
+        // Pass the calculated token colors and custom ImageViews to the player panels for the intro animation
+        ImageView p1MonsterImg = new ImageView();
+        ImageView p2MonsterImg = new ImageView();
+        StackPane player1Panel = createPlayerPanel(root, "PLAYER 1", activeGame.getPlayer(), p1EnergyLabel, p1EnergyDiff, p1PowerupBtn, p1RoleLabel, p1PosLabel, p1ShieldLabel, p1EffectLabel, p1Color, p1MonsterImg);
+        StackPane player2Panel = createPlayerPanel(root, "PLAYER 2", activeGame.getOpponent(), p2EnergyLabel, p2EnergyDiff, p2PowerupBtn, p2RoleLabel, p2PosLabel, p2ShieldLabel, p2EffectLabel, p2Color, p2MonsterImg);
         
         Runnable updateUI = () -> {
             Monster p1 = activeGame.getPlayer();
@@ -775,7 +802,7 @@ public class Main extends Application {
             } else if (mustDrawCard[0]) {
                 turnIndicator.setText("DRAW YOUR CARD!");
             } else {
-                turnIndicator.setText(curr == p1 ? "YOUR TURN!" : "OPPONENT'S TURN!");
+                turnIndicator.setText(curr == p1 ? "PLAYER 1'S TURN!" : "PLAYER 2'S TURN!");
             }
 
             double p1TargetX = (p1Pos == p2Pos) ? -8 : 0;
@@ -942,33 +969,23 @@ public class Main extends Application {
                     int roll = activeGame.getLastRoll();
                     debugLog(">>> Dice Rolled: " + roll + " <<<");
                     
-                    int distance = roll;
-                    if (playingMonster instanceof Dasher) {
-                        distance *= (momentumBefore > 0) ? 3 : 2;
-                    } else if (playingMonster instanceof MultiTasker) {
-                        distance /= (focusBefore > 0) ? 1 : 2;
-                    }
-                    int expectedLandPos = (oldPos + distance) % 100;
-
-                    /* * --- TATHEER MP3 LOGIC: SOCKS ---
-                     * This plays Tatheer.mp3 when a monster lands on a sock cell, which sends them back.
-                     */
-                    if (roll != 0 && containsIndex(Constants.SOCK_CELL_INDICES, expectedLandPos)) {
-                        playSoundEffect("Tatheer.mp3");
-                    }
+                    // The final position they actually end up at after ALL engine rules process (socks/belts)
+                    int finalLandPos = playingMonster.getPosition();
                     
+                    // ─── SECONDARY EFFECT EVALUATION ───
+                    // GUI now evaluates the Door and Monster logic based on finalLandPos, fixing the bug 
+                    // where effects were ignored after riding a conveyor belt.
                     int cols = Constants.BOARD_COLS;
-                    int r = expectedLandPos / cols;
-                    int c = expectedLandPos % cols;
+                    int r = finalLandPos / cols;
+                    int c = finalLandPos % cols;
                     if (r % 2 == 1) c = cols - 1 - c;
                     Cell landedCell = activeGame.getBoard().getBoardCells()[r][c];
-                    
                     
                     if (landedCell instanceof DoorCell && roll != 0) {
                         DoorCell door = (DoorCell) landedCell;
                         if (!door.isActivated()) {
                             door.setActivated(true);
-                            ImageView doorImg = doorIcons[expectedLandPos];
+                            ImageView doorImg = doorIcons[finalLandPos];
                             if (doorImg != null) {
                                 ColorAdjust grayscale = new ColorAdjust();
                                 grayscale.setSaturation(-1);
@@ -1059,10 +1076,8 @@ public class Main extends Application {
                         }
                     }
 
-                    // --- CARD DRAW LOGIC FIX START ---
-                    // Check their ACTUAL position after the engine resolves all socks/belts
-                    int finalLandPos = playingMonster.getPosition();
-                    boolean cardWasDrawn = isCardCell(finalLandPos);
+                    // --- CARD DRAW LOGIC FIX ---
+                    boolean cardWasDrawn = containsIndex(Constants.CARD_CELL_INDICES, finalLandPos);
                     Board.setCards(originalDeck);
                     
                     if (cardWasDrawn && roll != 0) {
@@ -1079,7 +1094,6 @@ public class Main extends Application {
                     } else {
                         isEffectDelayed[0] = false;
                     }
-                    // --- CARD DRAW LOGIC FIX END ---
 
                     diceLabel.setText(roll == 0 ? "X" : String.valueOf(roll));
                     updateUI.run();
@@ -1152,10 +1166,11 @@ public class Main extends Application {
                 if (drawnCard == null) return;
                 
                 /* * --- TATHEER MP3 LOGIC: CARDS ---
-                 * This plays Tatheer.mp3 when the code specifically draws the card (e.g. "Contamination")
-                 * which sends any monster back according to game logic.
+                 * This checks broadly for cards like "Contamination" or "Code 2319"
+                 * which sends the monster back, and safely triggers the sound effect.
                  */
-                if (drawnCard.getName().toLowerCase().contains("contamination")) {
+                String cNameLower = drawnCard.getName().toLowerCase();
+                if (cNameLower.contains("contamination") || cNameLower.contains("code") || cNameLower.contains("2319")) {
                     playSoundEffect("Tatheer.mp3");
                 }
 
@@ -1245,8 +1260,15 @@ public class Main extends Application {
                     startLabel.setStyle("-fx-font-size: 8px; -fx-text-fill: #1a5c1a; -fx-font-weight: bold;");
                     cell.getChildren().add(startLabel);
                 } else if (backendCell instanceof game.engine.cells.MonsterCell) {
-                    cell.setStyle("-fx-background-color: #4a90d9; -fx-border-color: #2c5f8a; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     Monster stationedMonster = ((game.engine.cells.MonsterCell) backendCell).getCellMonster();
+                    
+                    // NEW DYNAMIC COLORING FOR MONSTER CELLS
+                    if (stationedMonster.getRole() == Role.SCARER) {
+                        cell.setStyle("-fx-background-color: #ff9999; -fx-border-color: #cc0000; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    } else {
+                        cell.setStyle("-fx-background-color: #99ccff; -fx-border-color: #0066cc; -fx-border-width: 1px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
+                    }
+                    
                     String monsterImg = getMonsterImageByName(stationedMonster.getName());
                     if (monsterImg != null) {
                         ImageView monsterView = new ImageView(new Image(monsterImg));
@@ -1368,13 +1390,49 @@ public class Main extends Application {
         StackPane.setAlignment(cardInfoLabel, Pos.BOTTOM_CENTER);
         StackPane.setMargin(cardInfoLabel, new Insets(0, 0, 100, 0));
 
-        root.getChildren().addAll(background, mainLayout, overlayBg, overlayCard, cardInfoLabel);
+        // Layers for the introductory animation
+        Rectangle introOverlay = new Rectangle();
+        introOverlay.widthProperty().bind(root.widthProperty());
+        introOverlay.heightProperty().bind(root.heightProperty());
+        introOverlay.setFill(Color.rgb(0, 0, 0, 0.8));
+        introOverlay.setOpacity(0); // Start invisible for char roll
+
+        Pane deckAnimLayer = new Pane();
+
+        root.getChildren().addAll(background, mainLayout, introOverlay, deckAnimLayer, overlayBg, overlayCard, cardInfoLabel);
 
         background.fitWidthProperty().bind(root.widthProperty());
         background.fitHeightProperty().bind(root.heightProperty());
+
+        // Create the Intro Animations
+        Timeline p1CharRoll = createCharacterRollTimeline(p1MonsterImg, activeGame.getPlayer().getName());
+        Timeline p2CharRoll = createCharacterRollTimeline(p2MonsterImg, activeGame.getOpponent().getName());
+        SequentialTransition deckAnim = createDeckShuffleAnimation(root, cardBack, deckAnimLayer, introOverlay, isAnimating);
         
+        // Chain the animations
+        p1CharRoll.setOnFinished(e -> {
+            if (isAnimating[0]) { // Check if not skipped
+                deckAnim.play();
+            }
+        });
+
+        // Start char roll first
+        p1CharRoll.play();
+        p2CharRoll.play();
+
         scene.setOnKeyPressed(ev -> {
-            if (isAnimating[0]) return; // Block keys during animation
+            if (isAnimating[0]) { // Allow skipping intro animations!
+                if (ev.getCode() == KeyCode.SPACE || ev.getCode() == KeyCode.ESCAPE) {
+                    p1CharRoll.stop();
+                    p2CharRoll.stop();
+                    deckAnim.stop();
+                    p1MonsterImg.setImage(new Image(getMonsterImageByName(activeGame.getPlayer().getName())));
+                    p2MonsterImg.setImage(new Image(getMonsterImageByName(activeGame.getOpponent().getName())));
+                    root.getChildren().removeAll(introOverlay, deckAnimLayer);
+                    isAnimating[0] = false;
+                }
+                return;
+            }
             if (ev.getCode() == KeyCode.ESCAPE) stage.setScene(createRoleSelectionScene(stage));
             
             if (ev.getCode() == KeyCode.W && activeGame.getWinner() == null) {
@@ -1394,9 +1452,6 @@ public class Main extends Application {
                 checkAndNavigateWin.run();
             }
         });
-        
-        // Play the intro shuffle animation
-        playDeckShuffleAnimation(root, cardBack, isAnimating);
 
         return scene;
     }
@@ -1473,6 +1528,14 @@ public class Main extends Application {
                 step.setToY(cellPanes[i+1].getLayoutY() - cellPanes[newPos].getLayoutY() + targetY);
                 seq.getChildren().add(step);
             }
+
+            // Sync Tatheer audio PERFECTLY when the token physically hits a sock cell before it bounces backwards
+            if (newPos < oldPos) {
+                PauseTransition hitSockSoundTrigger = new PauseTransition(Duration.millis(1));
+                hitSockSoundTrigger.setOnFinished(e -> playSoundEffect("Tatheer.mp3"));
+                seq.getChildren().add(hitSockSoundTrigger);
+            }
+
         } else {
             intermediatePos = oldPos;
             token.setTranslateX(cellPanes[oldPos].getLayoutX() - cellPanes[newPos].getLayoutX() + targetX);
@@ -1504,11 +1567,18 @@ public class Main extends Application {
     }
 
     // ─── PLAYER PANEL ─────────────────────────────────────────────────────────
-    private StackPane createPlayerPanel(Pane root, String titleName, Monster monster, Label energyLabel, Label diffLabel, Button powerupBtn, Label roleLabel, Label posLabel, Label shieldLabel, Label effectLabel) {
-        ImageView monsterImg = new ImageView(new Image(getMonsterImageByName(monster.getName())));
+    private StackPane createPlayerPanel(Pane root, String titleName, Monster monster, Label energyLabel, Label diffLabel, Button powerupBtn, Label roleLabel, Label posLabel, Label shieldLabel, Label effectLabel, Color tokenColor, ImageView monsterImg) {
         monsterImg.setPreserveRatio(true);
         monsterImg.fitWidthProperty().bind(root.widthProperty().multiply(0.08));
         monsterImg.fitHeightProperty().bind(root.heightProperty().multiply(0.08));
+
+        Circle miniToken = new Circle(8, tokenColor);
+        miniToken.setStroke(Color.WHITE);
+        miniToken.setStrokeWidth(1.5);
+        DropShadow dsToken = new DropShadow(); 
+        dsToken.setRadius(2); 
+        dsToken.setColor(Color.BLACK);
+        miniToken.setEffect(dsToken);
 
         Label titleLabel = new Label(titleName);
         titleLabel.styleProperty().bind(Bindings.concat(
@@ -1516,13 +1586,18 @@ public class Main extends Application {
             root.heightProperty().multiply(0.022).asString("%.0f"),
             "px;"
         ));
+        
+        HBox titleBox = new HBox(8, miniToken, titleLabel);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+
         Label nameLabel = new Label(monster.getName());
         nameLabel.styleProperty().bind(Bindings.concat(
             "-fx-font-family: 'Impact'; -fx-text-fill: white; -fx-font-size: ",
             root.heightProperty().multiply(0.024).asString("%.0f"),
             "px;"
         ));
-        VBox nameTextBox = new VBox(1, titleLabel, nameLabel);
+        
+        VBox nameTextBox = new VBox(1, titleBox, nameLabel);
         nameTextBox.setAlignment(Pos.CENTER_LEFT);
 
         HBox nameRow = new HBox(8, monsterImg, nameTextBox);
@@ -1612,7 +1687,28 @@ public class Main extends Application {
         return btn;
     }
     
-    // THE ORIGINAL HELPER FOR LOSERS / GAME BOARD
+    private Timeline createCharacterRollTimeline(ImageView imgView, String finalMonsterName) {
+        String[] allMonsters = {
+            "Monsters/char_sulley.png", "Monsters/char_mike.png", 
+            "Monsters/char_randall.png", "Monsters/char_celia.png", 
+            "Monsters/char_roz.png", "Monsters/char_fungus.png", 
+            "Monsters/char_waternoose.png", "Monsters/char_yeti.png"
+        };
+        Timeline tl = new Timeline();
+        // 18 rapid cycles
+        for (int i = 0; i < 18; i++) {
+            int index = i % allMonsters.length;
+            tl.getKeyFrames().add(new KeyFrame(Duration.millis(i * 140), e -> {
+                imgView.setImage(new Image(allMonsters[index]));
+            }));
+        }
+        // Finally land on the real monster
+        tl.getKeyFrames().add(new KeyFrame(Duration.millis(18 * 140), e -> {
+            imgView.setImage(new Image(getMonsterImageByName(finalMonsterName)));
+        }));
+        return tl;
+    }
+
     private String getMonsterImageByName(String name) {
         switch (name) {
             case "James P. Sullivan": return "Monsters/char_sulley.png";
@@ -1627,7 +1723,6 @@ public class Main extends Application {
         }
     }
 
-    // THE NEW HELPER FOR WINNERS
     private String getWinningMonsterImageByName(String name) {
         switch (name) {
             case "James P. Sullivan": return "Monsters/char_sulley_win.png";
@@ -1657,14 +1752,6 @@ public class Main extends Application {
         return false;
     }
 
-    private boolean isCardCell(int position) {
-        int[] cardCells = {4, 12, 28, 36, 48, 56, 60, 76, 86, 90};
-        for (int c : cardCells) {
-            if (position == c) return true;
-        }
-        return false;
-    }
-    
     private void playAudio(String filename) {
         if (currentAudioFile.equals(filename) && mediaPlayer != null) return;
         
@@ -1685,17 +1772,29 @@ public class Main extends Application {
 
     private void playSoundEffect(String filename) {
         try {
-            if (mediaPlayer != null) {
+            // Safely flag if background music was actually playing, so we don't accidentally resume it if it shouldn't be
+            boolean wasPlaying = false;
+            if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
                 mediaPlayer.pause();
+                wasPlaying = true;
+            }
+            
+            // Stop and dispose the previous sound effect if one is still lingering
+            if (sfxPlayer != null) {
+                sfxPlayer.stop();
+                sfxPlayer.dispose();
             }
             
             Media media = new Media(new File(filename).toURI().toString());
-            MediaPlayer sfxPlayer = new MediaPlayer(media);
+            sfxPlayer = new MediaPlayer(media); 
             sfxPlayer.play();
             
+            final boolean resumeBgm = wasPlaying;
             sfxPlayer.setOnEndOfMedia(() -> {
                 sfxPlayer.dispose();
-                if (mediaPlayer != null) {
+                sfxPlayer = null;
+                // Only resume the background music if it was paused by THIS sound effect
+                if (mediaPlayer != null && resumeBgm) {
                     mediaPlayer.play();
                 }
             });
@@ -1707,28 +1806,20 @@ public class Main extends Application {
         }
     }
 
-    private void playDeckShuffleAnimation(StackPane root, ImageView deckNode, boolean[] isAnimating) {
-        // Darken the background slightly
-        Rectangle overlay = new Rectangle();
-        overlay.widthProperty().bind(root.widthProperty());
-        overlay.heightProperty().bind(root.heightProperty());
-        overlay.setFill(Color.rgb(0, 0, 0, 0.8));
-
-        // Separate pane for the cards to freely animate over everything else
-        Pane animLayer = new Pane();
-        root.getChildren().addAll(overlay, animLayer);
-
+    private SequentialTransition createDeckShuffleAnimation(StackPane root, ImageView deckNode, Pane animLayer, Rectangle overlay, boolean[] isAnimating) {
         ArrayList<Card> deckCards = Board.getCards();
         int numCards = Math.min(25, deckCards.size());
         ImageView[] visualCards = new ImageView[numCards];
         Image backImage = new Image("Cards/CardBack.png");
 
-        // Use runLater to ensure layout bounds are calculated before animating
+        SequentialTransition masterAnim = new SequentialTransition();
+
         Platform.runLater(() -> {
+            if (!isAnimating[0]) return; // Safely abort if the user skipped before this thread ran
+            
             double centerX = root.getWidth() / 2;
             double centerY = root.getHeight() / 2;
 
-            // Find exactly where the static deck sits on the screen
             Bounds deckBounds = deckNode.localToScene(deckNode.getBoundsInLocal());
             Point2D targetLocal = animLayer.sceneToLocal(deckBounds.getMinX(), deckBounds.getMinY());
             double deckX = targetLocal.getX();
@@ -1751,7 +1842,6 @@ public class Main extends Application {
                 cardView.setFitWidth(cardW);
                 cardView.setFitHeight(cardH);
                 
-                // Spawn in the exact center of the screen at size 0
                 cardView.setX(centerX - (cardW / 2));
                 cardView.setY(centerY - (cardH / 2));
                 cardView.setScaleX(0);
@@ -1760,7 +1850,6 @@ public class Main extends Application {
                 animLayer.getChildren().add(cardView);
                 visualCards[i] = cardView;
 
-                // 1. Grid Formation (5x5 Spread)
                 int row = i / 5;
                 int col = i % 5;
                 double targetX = centerX - 260 + (col * 130);
@@ -1780,7 +1869,6 @@ public class Main extends Application {
 
                 showGrid.getChildren().addAll(ttOut, stOut, rtOut);
 
-                // 2. Flip from Face to Back
                 ScaleTransition flipHide = new ScaleTransition(Duration.millis(200), cardView);
                 flipHide.setToX(0);
                 flipHide.setOnFinished(ev -> cardView.setImage(backImage));
@@ -1790,7 +1878,6 @@ public class Main extends Application {
 
                 flipCards.getChildren().add(new SequentialTransition(flipHide, flipShow));
 
-                // 4. Return to the Deck Stack
                 TranslateTransition ttStack = new TranslateTransition(Duration.seconds(1), cardView);
                 ttStack.setToX(deckX - cardView.getX());
                 ttStack.setToY(deckY - cardView.getY());
@@ -1805,7 +1892,6 @@ public class Main extends Application {
                 stackAnim.getChildren().addAll(ttStack, rtStack, stStack);
             }
 
-            // 3. Shuffling Swirl Effect
             for (int step = 0; step < 6; step++) {
                 ParallelTransition mixStep = new ParallelTransition();
                 for (int i = 0; i < numCards; i++) {
@@ -1821,10 +1907,13 @@ public class Main extends Application {
                 shuffleAnim.getChildren().add(mixStep);
             }
 
-            // Compile the Master Sequence
-            SequentialTransition masterAnim = new SequentialTransition(
+            FadeTransition ftIn = new FadeTransition(Duration.millis(400), overlay);
+            ftIn.setToValue(1.0);
+
+            masterAnim.getChildren().addAll(
+                ftIn,
                 showGrid,
-                new PauseTransition(Duration.seconds(2.5)), // Allow 2.5 seconds to read the cards
+                new PauseTransition(Duration.seconds(2.5)), 
                 flipCards,
                 new PauseTransition(Duration.millis(300)),
                 shuffleAnim,
@@ -1832,7 +1921,6 @@ public class Main extends Application {
                 stackAnim
             );
 
-            // Cleanup layer and unlock game
             masterAnim.setOnFinished(ev -> {
                 FadeTransition ftOut = new FadeTransition(Duration.millis(400), overlay);
                 ftOut.setToValue(0);
@@ -1842,9 +1930,9 @@ public class Main extends Application {
                 });
                 ftOut.play();
             });
-
-            masterAnim.play();
         });
+
+        return masterAnim;
     }
     
     public static void main(String[] args) {
