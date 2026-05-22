@@ -447,7 +447,7 @@ public class Main extends Application {
         return scene;
     }
 
-// ─── WIN SCENE ────────────────────────────────────────────────────────────
+    // ─── WIN SCENE ────────────────────────────────────────────────────────────
     private Scene createWinScene(Stage stage, Monster winner, Monster loser, boolean creditsRolled) {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
@@ -948,7 +948,7 @@ public class Main extends Application {
                 int oldP2Pos = activeGame.getOpponent().getPosition();
                 int oldP1Energy = activeGame.getPlayer().getEnergy();
                 int oldP2Energy = activeGame.getOpponent().getEnergy();
-               // int oldPos = playingMonster.getPosition();
+                int oldPos = playingMonster.getPosition();
                 
                 Map<String, Integer> preTurnEnergy = new HashMap<>();
                 preTurnEnergy.put(activeGame.getPlayer().getName(), activeGame.getPlayer().getEnergy());
@@ -1258,10 +1258,11 @@ public class Main extends Application {
 
                 if (engineIndex == 99) {
                     cell.setStyle("-fx-background-color: #FFD700; -fx-border-color: #FFA500; -fx-border-width: 2px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
-                    Label winLabel = new Label("BOO'S\nDOOR");
-                    winLabel.setStyle("-fx-font-size: 8px; -fx-text-fill: #8B0000; -fx-font-weight: bold;");
-                    winLabel.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
-                    cell.getChildren().add(winLabel);
+                    ImageView booView = new ImageView(new Image("boo.png"));
+                    booView.setPreserveRatio(true);
+                    booView.fitWidthProperty().bind(cell.prefWidthProperty().multiply(0.85));
+                    booView.fitHeightProperty().bind(cell.prefHeightProperty().multiply(0.85));
+                    cell.getChildren().add(booView);
                 } else if (engineIndex == 0) {
                     cell.setStyle("-fx-background-color: #c8f0c8; -fx-border-color: #4caf50; -fx-border-width: 2px; -fx-background-radius: 6px; -fx-border-radius: 6px;");
                     Label startLabel = new Label("START");
