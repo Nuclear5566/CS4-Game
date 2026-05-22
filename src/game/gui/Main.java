@@ -447,7 +447,7 @@ public class Main extends Application {
         return scene;
     }
 
-    // ─── WIN SCENE ────────────────────────────────────────────────────────────
+// ─── WIN SCENE ────────────────────────────────────────────────────────────
     private Scene createWinScene(Stage stage, Monster winner, Monster loser, boolean creditsRolled) {
         StackPane root = new StackPane();
         Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
@@ -467,82 +467,90 @@ public class Main extends Application {
 
         // --- WINNER PANEL (Text + Custom Win Image) ---
         Label winnerHeader = new Label("Winner:");
-        winnerHeader.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 56px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerHeader.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 42px; -fx-font-weight: bold; -fx-text-fill: white;");
         winnerHeader.setEffect(textShadow);
 
         Label winnerName   = new Label(winner.getName());
-        winnerName.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerName.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         winnerName.setEffect(textShadow);
 
         Label winnerRole   = new Label(winnerRoleStr);
-        winnerRole.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerRole.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         winnerRole.setEffect(textShadow);
 
         Label winnerEnergy = new Label("Final Energy: " + winner.getEnergy());
-        winnerEnergy.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        winnerEnergy.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         winnerEnergy.setEffect(textShadow);
 
         VBox winnerText = new VBox(2, winnerHeader, winnerName, winnerRole, winnerEnergy);
         winnerText.setAlignment(Pos.CENTER_LEFT);
 
-        // Load the custom win image (no programmatic crown needed!)
+        // Load the custom win image (Shrunk size to prevent box stretching)
         ImageView winnerImg = new ImageView(new Image(getWinningMonsterImageByName(winner.getName())));
         winnerImg.setPreserveRatio(true);
-        winnerImg.fitHeightProperty().bind(root.heightProperty().multiply(0.40)); 
+        winnerImg.fitHeightProperty().bind(root.heightProperty().multiply(0.25)); 
         
-        // Put the text and the single image side-by-side
-        HBox winnerBox = new HBox(60, winnerText, winnerImg);
+        // Put the text and the single image side-by-side (Reduced spacing from 60 to 20)
+        HBox winnerBox = new HBox(20, winnerText, winnerImg);
         winnerBox.setAlignment(Pos.CENTER_LEFT);
 
 
         // --- LOSER PANEL (Text + Normal Image) ---
         Label loserHeader = new Label("Loser:");
-        loserHeader.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 56px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserHeader.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 42px; -fx-font-weight: bold; -fx-text-fill: white;");
         loserHeader.setEffect(textShadow);
 
         Label loserName   = new Label(loser.getName());
-        loserName.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserName.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         loserName.setEffect(textShadow);
 
         Label loserRole   = new Label(loserRoleStr);
-        loserRole.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserRole.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         loserRole.setEffect(textShadow);
 
         Label loserEnergy = new Label("Final Energy: " + loser.getEnergy());
-        loserEnergy.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: white;");
+        loserEnergy.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
         loserEnergy.setEffect(textShadow);
 
         VBox loserText = new VBox(2, loserHeader, loserName, loserRole, loserEnergy);
         loserText.setAlignment(Pos.CENTER_LEFT);
 
-        // USING THE NORMAL IMAGES FOR THE LOSER HERE
+        // USING THE NORMAL IMAGES FOR THE LOSER HERE (Shrunk size to prevent box stretching)
         ImageView loserImg = new ImageView(new Image(getMonsterImageByName(loser.getName())));
         loserImg.setPreserveRatio(true);
-        loserImg.fitHeightProperty().bind(root.heightProperty().multiply(0.30)); 
+        loserImg.fitHeightProperty().bind(root.heightProperty().multiply(0.20)); 
         loserImg.setOpacity(0.85); // Faded
 
-        HBox loserBox = new HBox(60, loserText, loserImg);
+        // Reduced spacing from 60 to 20
+        HBox loserBox = new HBox(20, loserText, loserImg);
         loserBox.setAlignment(Pos.CENTER_LEFT);
 
 
         // --- COMBINE BOTH PANELS ---
         VBox statsPanel = new VBox(15, winnerBox, loserBox); 
         
-        // Pinned to Top Left to stop it from clashing with the bottom text
+        // Background box behind the winner and loser area (Reduced padding)
+        statsPanel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.55); -fx-padding: 20px; -fx-background-radius: 15px;");
+        statsPanel.setMaxWidth(VBox.USE_PREF_SIZE);
+        statsPanel.setMaxHeight(VBox.USE_PREF_SIZE);
+        
+        // Pinned to Top Left
         statsPanel.setAlignment(Pos.TOP_LEFT);
         StackPane.setAlignment(statsPanel, Pos.TOP_LEFT);
         
-        // Insets: (Top 50, Right 0, Bottom 0, Left 100)
-        StackPane.setMargin(statsPanel, new Insets(50, 0, 0, 100)); 
+        // Insets: Pushed further up and to the left to clear the bottom text
+        StackPane.setMargin(statsPanel, new Insets(30, 0, 0, 40)); 
 
 
         Font.loadFont(new File("IrishGrover-Regular.ttf").toURI().toString(), 10);
         String teamName = winner.getRole() == Role.SCARER ? "SCARERS" : "LAUGHERS";
         Label bigWinLabel = new Label(teamName + " WIN");
+        
+        // Slightly reduced the multiplier from 0.11 to 0.10 to help with spacing
         bigWinLabel.styleProperty().bind(Bindings.concat(
             "-fx-font-family: 'Irish Grover';" +
             "-fx-font-size: ",
-            root.widthProperty().multiply(0.11).asString("%.0f"),
+            root.widthProperty().multiply(0.10).asString("%.0f"),
             "px;" +
             "-fx-font-weight: bold;" +
             "-fx-text-fill: black;"
@@ -555,7 +563,7 @@ public class Main extends Application {
         bigWinLabel.setEffect(winTextShadow);
 
         StackPane.setAlignment(bigWinLabel, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(bigWinLabel, new Insets(0, 0, 10, 0));
+        StackPane.setMargin(bigWinLabel, new Insets(0, 0, 80, 0));
 
 
         // --- BUTTONS (MOVED TO TOP RIGHT) ---
@@ -580,7 +588,7 @@ public class Main extends Application {
         StackPane.setAlignment(buttonRow, Pos.TOP_RIGHT);
         StackPane.setMargin(buttonRow, new Insets(40, 40, 0, 0)); 
 
-        // Credits delay logic - Increased from 4.5 to 8 seconds!
+        // Credits delay logic
         PauseTransition creditsDelay = new PauseTransition(Duration.seconds(8));
         if (!creditsRolled) {
             creditsDelay.setOnFinished(e -> stage.setScene(createPostGameCreditsScene(stage, scene)));
@@ -940,7 +948,7 @@ public class Main extends Application {
                 int oldP2Pos = activeGame.getOpponent().getPosition();
                 int oldP1Energy = activeGame.getPlayer().getEnergy();
                 int oldP2Energy = activeGame.getOpponent().getEnergy();
-                int oldPos = playingMonster.getPosition();
+               // int oldPos = playingMonster.getPosition();
                 
                 Map<String, Integer> preTurnEnergy = new HashMap<>();
                 preTurnEnergy.put(activeGame.getPlayer().getName(), activeGame.getPlayer().getEnergy());
